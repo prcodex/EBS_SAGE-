@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSCRAPER - Real-time Financial Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: #15202B; 
+            color: #fff;
+        }
+        
+        .header {
+            background: #1a1a1a;
+            padding: 15px 20px;
+            border-bottom: 1px solid #38444d;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            display: inline-block;
+        }
+        
+        .stats {
+            float: right;
+            color: #8899a6;
+            font-size: 14px;
+            line-height: 28px;
+        }
+        
+        #feed {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .tweet {
+            background: #192734;
+            border: 1px solid #38444d;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .tweet:hover {
+            background: #1e3a4c;
+            border-color: #1DA1F2;
+        }
+        
+        .tweet-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #8899a6;
+        }
+        
+        .username {
+            color: #1DA1F2;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        .time {
+            margin-left: 10px;
+            color: #657786;
+        }
+        
+        .tweet-text {
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+        
+        .tweet-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #38444d;
+        }
+        
+        /* Sentiment Badges */
+        .sentiment {
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .sentiment.positive { 
+            background: #00d084; 
+            color: white;
+        }
+        
+        .sentiment.negative { 
+            background: #ff4757; 
+            color: white;
+        }
+        
+        .sentiment.neutral { 
+            background: #657786; 
+            color: white;
+        }
+        
+        /* AI Score */
+        .ai-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: #1DA1F2;
+            color: white;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .ai-score.high { background: #00d084; }
+        .ai-score.medium { background: #ffa500; }
+        .ai-score.low { background: #ff4757; }
+        
+        /* Keywords */
+        .keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .keyword {
+            padding: 3px 8px;
+            background: #2c3e50;
+            color: #1DA1F2;
+            border-radius: 12px;
+            font-size: 11px;
+            border: 1px solid #38444d;
+        }
+        
+        /* Rating System */
+        .rating-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stars {
+            display: inline-flex;
+            gap: 2px;
+        }
+        
+        .star {
+            cursor: pointer;
+            font-size: 18px;
+            color: #38444d;
+            transition: color 0.2s;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: #ffa500;
+        }
+        
+        .rating-value {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .rating-input {
+            width: 50px;
+            padding: 2px 5px;
+            background: #192734;
+            border: 1px solid #38444d;
+            border-radius: 5px;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .save-rating {
+            padding: 3px 10px;
+            background: #1DA1F2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .save-rating:hover {
+            background: #0d8ed8;
+        }
+        
+        /* Market Impact */
+        .market-impact {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            border: 1px solid;
+        }
+        
+        .market-impact.high {
+            background: rgba(255, 71, 87, 0.2);
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+        
+        .market-impact.medium {
+            background: rgba(255, 165, 0, 0.2);
+            border-color: #ffa500;
+            color: #ffa500;
+        }
+        
+        .market-impact.low {
+            background: rgba(101, 119, 134, 0.2);
+            border-color: #657786;
+            color: #657786;
+        }
+        
+        /* Category Badge */
+        .category {
+            padding: 3px 8px;
+            background: #2c3e50;
+            color: #8899a6;
+            border-radius: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Update Timer */
+        #update-timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #update-timer button {
+            padding: 5px 10px;
+            background: #1DA1F2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        #update-timer button:hover {
+            background: #0d8ed8;
+        }
+    
+        /* Dual Score Display */
+        .score-container {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .user-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: #ffa500;
+            color: white;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .user-score.high { background: #00d084; }
+        .user-score.medium { background: #ffa500; }
+        .user-score.low { background: #ff4757; }
+
+    </style>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta http-equiv="refresh" content="301">
+</head>
+<body>
+    <div class="header">
+        <h1>📊 XSCRAPER - Financial Intelligence Feed</h1>
+        <div class="stats">
+            Total Items: <span id="total">{{ initial_items|length }}</span> | 
+            Last Update: <span id="last-update">Just now</span>
+        </div>
+    </div>
+    
+    <div id="tweets-container">
+        <!-- Server-side rendered tweets with ALL features -->
+        {% for item in initial_items %}
+        <div class="tweet" id="item-{{ item.id }}">
+            <div class="tweet-header">
+                <span class="icon">{{ '🐦' if item.type == 'tweet' else '📰' }}</span>
+                <span class="username">@{{ item.username or 'news' }}</span>
+                <span class="time">• {{ item.created_at_brazil }}</span>
+                {% if item.category %}
+                    <span class="category">{{ item.category }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="tweet-text">{{ item.text|safe }}</div>
+            
+            <div class="tweet-footer">
+                <!-- Sentiment -->
+                {% if item.sentiment %}
+                    <span class="sentiment {{ item.sentiment }}">
+                        {% if item.sentiment == 'positive' %}📈{% elif item.sentiment == 'negative' %}📉{% else %}➖{% endif %}
+                        {{ item.sentiment|capitalize }}
+                    </span>
+                {% endif %}
+                
+                <!-- Score Container (AI + User) -->
+                <div class="score-container">
+                    {% if item.ai_score %}
+                        <span class="ai-score {% if item.ai_score >= 8 %}high{% elif item.ai_score >= 5 %}medium{% else %}low{% endif %}">
+                            🤖 AI: {{ item.ai_score }}/10
+                        </span>
+                    {% endif %}
+                    <span id="user-score-{{ item.id }}" class="user-score" style="{% if not item.user_rating %}display: none;{% endif %}">
+                        👤 You: <span class="user-score-value">{{ item.user_rating or '' }}</span>/10
+                    </span>
+                </div>
+                
+                <!-- Market Impact -->
+                {% if item.market_impact %}
+                    <span class="market-impact {{ item.market_impact }}">
+                        Impact: {{ item.market_impact|upper }}
+                    </span>
+                {% endif %}
+                
+                <!-- Keywords -->
+                {% if item.keywords_list %}
+                    <div class="keywords">
+                        {% for keyword in item.keywords_list[:5] %}
+                            <span class="keyword">{{ keyword }}</span>
+                        {% endfor %}
+                    </div>
+            
+            <!-- Major Actors -->
+            {% if item.major_actors and item.major_actors|length > 0 %}
+            <div style="margin-top: 8px;">
+                <span style="color: #8899a6; font-size: 12px;">👥</span>
+                {% for actor in item.major_actors %}
+                <span style="display: inline-block; padding: 2px 8px; margin: 2px; background: #192734; border: 1px solid #38444d; border-radius: 12px; font-size: 12px; color: #e1e8ed;">{{ actor }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+                {% endif %}
+                
+                <!-- Rating System -->
+                <div class="rating-container">
+                    <div class="stars" data-id="{{ item.id }}">
+                        {% for i in range(1, 6) %}
+                            <span class="star {% if item.user_rating and item.user_rating >= i*2 %}active{% endif %}" 
+                                  onclick="setRating('{{ item.id }}', {{ i*2 }})">★</span>
+                        {% endfor %}
+                    </div>
+                    <div class="rating-value">
+                        <input type="number" 
+                               class="rating-input" 
+                               id="rating-{{ item.id }}" 
+                               value="{{ item.user_rating or '' }}" 
+                               min="0" max="10" step="0.5">
+                        <button class="save-rating" onclick="saveRating('{{ item.id }}')">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Update Timer -->
+    <div id="update-timer">
+        <span>Update in: <span id="countdown">5:00</span></span>
+        <button onclick="updateNow()">Update Now</button>
+    </div>
+    
+        <script>
+        // Rating Functions
+        function setRating(id, rating) {
+            document.getElementById('rating-' + id).value = rating;
+            updateStars(id, rating);
+        }
+        
+        function updateStars(id, rating) {
+            const stars = document.querySelector('.stars[data-id="' + id + '"]').children;
+            for (let i = 0; i < stars.length; i++) {
+                stars[i].classList.toggle('active', (i + 1) * 2 <= rating);
+            }
+        }
+        
+        function saveRating(id) {
+            const rating = document.getElementById('rating-' + id).value;
+            const btn = document.querySelector(`#item-${id} .save-rating`);
+            
+            if (!rating || rating === '') {
+                alert('Please enter a rating');
+                return;
+            }
+            
+            // Use fetch to save the rating
+            fetch('/api/rate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, rating: parseFloat(rating) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update button to show success
+                    if (btn) {
+                        btn.textContent = '✓';
+                        btn.style.background = '#00d084';
+                        setTimeout(() => {
+                            btn.textContent = 'Save';
+                            btn.style.background = '#1DA1F2';
+                        }, 2000);
+                    }
+                    updateStars(id, rating);
+                    
+                    // Show/update the user score badge
+                    const userScoreBadge = document.getElementById('user-score-' + id);
+                    if (userScoreBadge) {
+                        userScoreBadge.style.display = 'inline-flex';
+                        const scoreValue = userScoreBadge.querySelector('.user-score-value');
+                        if (scoreValue) {
+                            scoreValue.textContent = rating;
+                        } else {
+                            userScoreBadge.innerHTML = '👤 You: ' + rating + '/10';
+                        }
+                        
+                        // Update color based on rating
+                        userScoreBadge.className = 'user-score';
+                        if (rating >= 8) {
+                            userScoreBadge.classList.add('high');
+                        } else if (rating >= 5) {
+                            userScoreBadge.classList.add('medium');
+                        } else {
+                            userScoreBadge.classList.add('low');
+                        }
+                    }
+                    
+                    console.log('Rating saved:', rating);
+                } else {
+                    console.error('Server error:', data.message);
+                    // Save locally as fallback
+                    localStorage.setItem('rating-' + id, rating);
+                    if (btn) {
+                        btn.textContent = '📱';
+                        setTimeout(() => btn.textContent = 'Save', 2000);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Network error:', error);
+                // Save locally as fallback
+                localStorage.setItem('rating-' + id, rating);
+                if (btn) {
+                    btn.textContent = '📱';
+                    setTimeout(() => btn.textContent = 'Save', 2000);
+                }
+            });
+        }
+        
+        // AJAX Update System
+        let updateInterval = 5 * 60 * 1000; // 5 minutes
+        let nextUpdate = Date.now() + updateInterval;
+        
+        function updateFeed() {
+            fetch('/api/feed?t=' + Date.now())
+            .then(response => response.json())
+            .then(data => {
+                renderUpdatedFeed(data.items);
+                document.getElementById('total').textContent = data.items.length;
+                document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+                nextUpdate = Date.now() + updateInterval;
+            })
+            .catch(error => {
+                console.error('Update failed:', error);
+            });
+        }
+        
+        function renderUpdatedFeed(items) {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = '';
+            
+            items.forEach(item => {
+                const tweet = createFullTweetElement(item);
+                feed.appendChild(tweet);
+            });
+        }
+        
+        function createFullTweetElement(item) {
+            const div = document.createElement('div');
+            div.className = 'tweet';
+            div.id = 'item-' + item.id;
+            
+            // Build complete tweet with all features
+            let html = `
+                <div class="tweet-header">
+                    <span class="icon">${item.type === 'tweet' ? '🐦' : '📰'}</span>
+                    <span class="username">@${item.username || 'news'}</span>
+                    <span class="time">• ${item.created_at_brazil}</span>
+                    ${item.category ? `<span class="category">${item.category}</span>` : ''}
+                </div>
+                
+                <div class="tweet-text">${item.text}</div>
+                
+                <div class="tweet-footer">`;
+            
+            // Add sentiment
+            if (item.sentiment) {
+                const icon = item.sentiment === 'positive' ? '📈' : item.sentiment === 'negative' ? '📉' : '➖';
+                html += `<span class="sentiment ${item.sentiment}">${icon} ${item.sentiment}</span>`;
+            }
+            
+            // Add score container (AI + User)
+            html += '<div class="score-container">';
+            if (item.ai_score) {
+                const level = item.ai_score >= 8 ? 'high' : item.ai_score >= 5 ? 'medium' : 'low';
+                html += `<span class="ai-score ${level}">🤖 AI: ${item.ai_score}/10</span>`;
+            }
+            if (item.user_rating) {
+                const level = item.user_rating >= 8 ? 'high' : item.user_rating >= 5 ? 'medium' : 'low';
+                html += `<span id="user-score-${item.id}" class="user-score ${level}">👤 You: ${
+                            item.user_rating && item.ai_relevance_score ? 
+                                `<span class="score-badge user-score">👤 ${item.user_rating}/10</span> <span class="score-badge ai-score">🤖 ${item.ai_relevance_score}/10</span>` :
+                            item.user_rating ? 
+                                `<span class="score-badge user-score">👤 ${item.user_rating}/10</span>` : 
+                            item.ai_relevance_score ? 
+                                `<span class="score-badge ai-score">🤖 ${item.ai_relevance_score}/10</span>` : 
+                                ''
+                        }/10</span>`;
+            } else {
+                html += `<span id="user-score-${item.id}" class="user-score" style="display: none;">👤 You: <span class="user-score-value"></span>/10</span>`;
+            }
+            html += '</div>';
+            
+            // Add market impact
+            if (item.market_impact) {
+                html += `<span class="market-impact ${item.market_impact}">Impact: ${item.market_impact.toUpperCase()}</span>`;
+            }
+            
+            // Add keywords
+            if (item.keywords_list && item.keywords_list.length > 0) {
+                html += '<div class="keywords">';
+                item.keywords_list.slice(0, 5).forEach(keyword => {
+                    html += `<span class="keyword">${keyword}</span>`;
+                });
+                html += '</div>';
+            }
+            
+            // Add rating system
+            html += `
+                <div class="rating-container">
+                    <div class="stars" data-id="${item.id}">`;
+            
+            for (let i = 1; i <= 5; i++) {
+                const active = item.user_rating && item.user_rating >= i * 2 ? 'active' : '';
+                html += `<span class="star ${active}" onclick="setRating('${item.id}', ${i * 2})">★</span>`;
+            }
+            
+            html += `
+                    </div>
+                    <div class="rating-value">
+                        <input type="number" class="rating-input" id="rating-${item.id}" 
+                               value="${item.user_rating || ''}" min="0" max="10" step="0.5">
+                        <button class="save-rating" onclick="saveRating('${item.id}')">Save</button>
+                    </div>
+                </div>
+            </div>`;
+            
+            div.innerHTML = html;
+            return div;
+        }
+        
+        // Update timer
+        function updateTimer() {
+            const remaining = Math.max(0, nextUpdate - Date.now());
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            const countdown = document.getElementById('countdown');
+            if (countdown) {
+                countdown.textContent = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            }
+            
+            if (remaining <= 0) {
+                updateFeed();
+            }
+        }
+        
+        function updateNow() {
+            updateFeed();
+        }
+        
+        // Initialize
+        setInterval(updateTimer, 1000);
+        setInterval(updateFeed, updateInterval);
+        
+        // Load saved ratings from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.rating-input').forEach(input => {
+                const id = input.id.replace('rating-', '');
+                const saved = localStorage.getItem('rating-' + id);
+                if (saved && !input.value) {
+                    input.value = saved;
+                    updateStars(id, saved);
+                }
+            });
+        });
+    </script>
+    <script>
+        </script>
+
+
+    <script>
+        // Info countdown - shows when next update will happen
+        (function() {
+            let seconds = 900; // 15 minutes
+            
+            function updateCountdown() {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                const display = document.getElementById('countdown');
+                if (display) {
+                    display.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+                }
+                
+                seconds--;
+                
+                if (seconds < 0) {
+                    // Just show "Updating..." message
+                    if (display) {
+                        display.textContent = 'Updating...';
+                    }
+                }
+            }
+            
+            // Run countdown every second
+            setInterval(updateCountdown, 1000);
+            
+            console.log('✅ Next data update in 15 minutes (server will restart automatically)');
+        })();
+    </script>
+    <!-- Load More Section -->
+    <div id="load-more-section" style="
+        text-align: center; 
+        padding: 20px; 
+        margin: 20px auto 50px auto;
+        max-width: 600px;
+    ">
+        <button id="load-more-btn" onclick="loadMoreTweets()" style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            font-weight: bold;
+        ">
+            📥 Load 50 More Tweets
+        </button>
+        <div id="loading-indicator" style="display: none; color: #8899a6; margin-top: 10px;">
+            ⏳ Loading more tweets...
+        </div>
+    </div>
+
+    <script>
+    // Load More functionality
+    let currentOffset = 50;
+    
+    function loadMoreTweets() {
+        console.log('Load More clicked');
+        const loadBtn = document.getElementById('load-more-btn');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        if (!loadBtn) {
+            console.error('Load More button not found');
+            return;
+        }
+        
+        // Show loading state
+        loadBtn.style.display = 'none';
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'block';
+        }
+        
+        console.log('Fetching from offset:', currentOffset);
+        
+        fetch(`/api/load_more?offset=${currentOffset}&limit=50`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received data:', data);
+                
+                if (data.items && data.items.length > 0) {
+                    const container = document.getElementById('tweets-container');
+                    if (!container) {
+                        console.error('tweets-container not found');
+                        // Try to find any container with tweets
+                        const possibleContainer = document.querySelector('.tweets-container') || 
+                                                 document.querySelector('[id*="tweets"]') ||
+                                                 document.querySelector('.tweet').parentElement;
+                        if (possibleContainer) {
+                            console.log('Found alternative container');
+                            container = possibleContainer;
+                        } else {
+                            alert('Error: Cannot find tweets container');
+                            return;
+                        }
+                    }
+                    
+                    // Append each new tweet
+                    data.items.forEach(item => {
+                        // Create tweet HTML matching the existing structure
+                        const tweetDiv = document.createElement('div');
+                        tweetDiv.className = 'tweet';
+                    tweetDiv.id = 'item-' + item.id;
+                        
+                        let tweetHtml = `
+                            <div class="tweet-header">
+                                <span class="tweet-author">🐦 @${item.username || item.display_name || 'unknown'}</span>
+                                <span class="time">• ${item.created_at_brazil || ''}</span>`;
+                        
+                        if (item.category) {
+                            tweetHtml += `<span class="tweet-category">${item.category}</span>`;
+                        }
+                        
+                        tweetHtml += `</div>
+                            <div class="tweet-text">${item.text || ''}</div>`;
+                        
+                        // Add sentiment if exists
+                        if (item.sentiment) {
+                            let sentimentIcon = '➖';
+                            let sentimentColor = '#8899a6';
+                            
+                            if (item.sentiment.includes('positive')) {
+                                sentimentIcon = '📈';
+                                sentimentColor = '#00d084';
+                            } else if (item.sentiment.includes('negative')) {
+                                sentimentIcon = '📉';
+                                sentimentColor = '#ff6b6b';
+                            }
+                            
+                            tweetHtml += `<div class="sentiment">
+                                <span style="color: ${sentimentColor};">${sentimentIcon} ${item.sentiment}</span>
+                            </div>`;
+                        }
+                        
+                        // Add AI score and user rating if exists
+                        if (item.ai_score || item.user_rating) {
+                            tweetHtml += `<div class="scores">`;
+                            
+                            if (item.ai_score) {
+                                tweetHtml += `<span class="ai-score">🤖 AI: ${item.ai_score}/10</span>`;
+                            }
+                            
+                            if (item.user_rating) {
+                                tweetHtml += `<span class="user-score">👤 You: ${item.user_rating}/10</span>`;
+                            }
+                            
+                            tweetHtml += `</div>`;
+                        }
+                        
+                        // Add keywords if exists
+                        if (item.keywords_list && item.keywords_list.length > 0) {
+                            tweetHtml += `<div class="keywords">`;
+                            item.keywords_list.forEach(keyword => {
+                                tweetHtml += `<span class="keyword">${keyword}</span>`;
+                            });
+                            tweetHtml += `</div>`;
+                        }
+                        
+                        // Add major actors if exists
+                        if (item.major_actors && item.major_actors.length > 0) {
+                            tweetHtml += `<div class="actors">
+                                <span style="color: #8899a6;">👥</span>`;
+                            item.major_actors.forEach(actor => {
+                                tweetHtml += `<span class="actor-badge">${actor}</span>`;
+                            });
+                            tweetHtml += `</div>`;
+                        }
+                        
+                        tweetDiv.innerHTML = tweetHtml;
+                        
+                        // Append to container
+                        if (container) {
+                            container.appendChild(tweetDiv);
+                        }
+                    });
+                    
+                    // Update offset
+                    currentOffset += data.items.length;
+                    console.log('New offset:', currentOffset);
+                    
+                    // Update button state
+                    if (data.has_more) {
+                        loadBtn.innerHTML = '📥 Load 50 More Tweets';
+                        loadBtn.style.display = 'inline-block';
+                    } else {
+                        loadBtn.innerHTML = '✅ All tweets loaded';
+                        loadBtn.disabled = true;
+                        loadBtn.style.display = 'inline-block';
+                        loadBtn.style.background = '#4a5568';
+                    }
+                } else {
+                    console.log('No more items to load');
+                    loadBtn.innerHTML = '✅ No more tweets';
+                    loadBtn.disabled = true;
+                    loadBtn.style.display = 'inline-block';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading more:', error);
+                alert('Error loading more tweets. Please try again.');
+                loadBtn.innerHTML = '❌ Error - Click to retry';
+                loadBtn.style.display = 'inline-block';
+            })
+            .finally(() => {
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+            });
+    }
+    </script>
+
+
+    <!-- WORKING Email Modal -->
+    <div id="emailModal" onclick="closeIfOutside(event)" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+    ">
+        <div class="modal-container" onclick="event.stopPropagation()" style="
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 900px;
+            height: 90vh;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        ">
+            <div class="modal-header" style="
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 12px 12px 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                min-height: 80px;
+                flex-shrink: 0;
+            ">
+                <div class="modal-header-content" style="flex: 1; padding-right: 20px;">
+                    <h2 id="modalTitle" style="margin: 0; font-size: 18px;"></h2>
+                    <div id="modalMeta" style="margin-top: 8px; opacity: 0.9; font-size: 14px;"></div>
+                </div>
+                <button class="modal-close" onclick="closeEmailModal()" style="
+                    background: rgba(255,255,255,0.2);
+                    border: none;
+                    color: white;
+                    font-size: 24px;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                ">×</button>
+            </div>
+            <div class="modal-body" id="modalBody" style="
+                flex: 1;
+                overflow-y: auto;
+                padding: 30px;
+                background: white;
+                border-radius: 0 0 12px 12px;
+            ">
+                <!-- Email content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Make tweets clickable for email view
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use event delegation on the tweets container
+        const tweetsContainer = document.getElementById('tweets-container');
+        if (tweetsContainer) {
+            // Single event listener on parent that handles all clicks
+            tweetsContainer.addEventListener('click', function(e) {
+                // Find the tweet element that was clicked
+                let tweetElement = e.target;
+                while (tweetElement && !tweetElement.classList.contains('tweet')) {
+                    tweetElement = tweetElement.parentElement;
+                    if (tweetElement === tweetsContainer) {
+                        return; // Reached container without finding tweet
+                    }
+                }
+                
+                // Don't open if clicking on a button or link
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    return;
+                }
+                
+                // Get the item ID and open email
+                if (tweetElement && tweetElement.id) {
+                    const itemId = tweetElement.id.replace('item-', '');
+                    if (itemId && itemId !== 'item-') {
+                        openEmail(itemId);
+                    }
+                }
+            });
+            
+            // Add cursor pointer to all tweets (including dynamically loaded ones)
+            const style = document.createElement('style');
+            style.textContent = '.tweet { cursor: pointer; }';
+            document.head.appendChild(style);
+        }
+    });
+    
+    function openEmail(itemId) {
+        const modal = document.getElementById('emailModal');
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        fetch('/api/item/' + itemId)
+            .then(response => response.json())
+            .then(item => {
+                document.getElementById('modalTitle').textContent = item.title || 'Email Content';
+                
+                const metaHtml = 'From: ' + (item.display_name || item.username) + ' • ' + (item.created_at_brazil || '');
+                document.getElementById('modalMeta').innerHTML = metaHtml;
+                
+                const bodyElement = document.getElementById('modalBody');
+                if (item.full_html && item.full_html.length > 100) {
+                    // Create iframe for HTML content
+                    const iframe = document.createElement('iframe');
+                    iframe.style.width = '100%';
+                    iframe.style.border = 'none';
+                    iframe.style.minHeight = '600px';
+                    
+                    bodyElement.innerHTML = '';
+                    bodyElement.appendChild(iframe);
+                    
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    iframeDoc.open();
+                    iframeDoc.write(item.full_html);
+                    iframeDoc.close();
+                    
+                    setTimeout(() => {
+                        iframe.style.height = iframeDoc.body.scrollHeight + 'px';
+                    }, 100);
+                } else {
+                    bodyElement.innerHTML = '<div style="white-space: pre-wrap;">' + (item.text || 'No content available') + '</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('modalBody').innerHTML = '<p>Error loading content</p>';
+            });
+    }
+    
+    function closeEmailModal() {
+        document.getElementById('emailModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+    
+    function closeIfOutside(event) {
+        if (event.target === document.getElementById('emailModal')) {
+            closeEmailModal();
+        }
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeEmailModal();
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAGE - Premium Financial Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: #f8f9fa;
+            color: #202124;
+        }
+        .header {
+            background: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #E1E8ED;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 { font-size: 20px; color: #202124; }
+        .feed {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        .email-item {
+            background: white;
+            border: 1px solid #E1E8ED;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .sender {
+            color: #1DA1F2;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .timestamp {
+            color: #657786;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .email-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #202124;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .keywords, .actors, .themes {
+            font-size: 14px;
+            color: #657786;
+            margin-bottom: 8px;
+        }
+        .summary {
+            margin-top: 10px;
+            padding-left: 15px;
+            border-left: 3px solid #1DA1F2;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #202124;
+            white-space: pre-wrap;
+        }
+        .summary a {
+            color: #1DA1F2 !important;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .summary a:hover { text-decoration: underline; }
+        .ai-score {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #657786;
+        }
+        
+        /* Gmail-style Detail Panel */
+        .detail-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 60%;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+            z-index: 2000;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .detail-panel.open {
+            right: 0;
+        }
+        .detail-header {
+            padding: 20px;
+            border-bottom: 1px solid #E1E8ED;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .detail-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #657786;
+            border: none;
+            background: none;
+        }
+        .detail-close:hover { color: #202124; }
+        .detail-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .email-subject {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .email-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #E1E8ED;
+        }
+        .sender-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1DA1F2;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .sender-details {
+            flex: 1;
+        }
+        .sender-name {
+            font-weight: 600;
+            color: #202124;
+        }
+        .email-date {
+            color: #657786;
+            font-size: 13px;
+            margin-left: 10px;
+        }
+        .email-iframe {
+            width: 100%;
+            min-height: 500px;
+            border: none;
+            background: white;
+        }
+        
+        /* Overlay for panel */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+        }
+        .overlay.open {
+            display: block;
+        }
+    
+        /* Show More Button */
+        .show-more-btn {
+            background: #1DA1F2;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 8px 0;
+            transition: background 0.2s;
+        }
+        
+        .show-more-btn:hover {
+            background: #1a8cd8;
+        }
+        
+        .card-details {
+            display: none;
+        }
+        
+        .card-details.visible {
+            display: block;
+        }
+
+
+        /* View filter buttons */
+        .view-filters {
+            margin-top: 10px;
+        }
+        
+        .view-btn {
+            background: transparent;
+            color: #657786;
+            border: 1px solid #E1E8ED;
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .view-btn:hover {
+            background: #f0f0f0;
+            border-color: #1DA1F2;
+            color: #1DA1F2;
+        }
+        
+        .view-btn.active {
+            background: #1DA1F2;
+            color: white;
+            border-color: #1DA1F2;
+        }
+
+
+        /* Gmail-style list view */
+        /* Option D Enhanced: 3 lines, wider, bold title 30% larger */
+        .gmail-list-row {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .row-line-1 {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .row-line-2 {
+            font-weight: bold;
+            font-size: 18.2px;  /* 30% larger than 14px */
+            color: #202124;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        
+        .row-line-3 {
+            color: #657786;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .preview-keywords {
+            color: #1DA1F2;
+            font-weight: 500;
+        }
+        
+        .preview-separator {
+            margin: 0 10px;
+            color: #E1E8ED;
+        }
+        
+        .preview-bullets {
+            color: #657786;
+        }
+        
+        .preview-keywords {
+            color: #1DA1F2;
+            font-weight: 500;
+        }
+        
+        .preview-separator {
+            margin: 0 10px;
+            color: #E1E8ED;
+        }
+        
+        .preview-bullets {
+            color: #657786;
+        }
+        
+        .gmail-list-row:hover {
+            background: #f5f5f5;
+        }
+        
+        .gmail-row-main {
+            flex: 1;
+        }
+        
+        .gmail-row-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .gmail-sender {
+            font-weight: 600;
+            color: #202124;
+            font-size: 14px;
+        }
+        
+        .gmail-time {
+            color: #657786;
+            font-size: 13px;
+        }
+        
+        .gmail-title {
+            color: #202124;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        
+        .gmail-preview {
+            color: #657786;
+            font-size: 13px;
+        }
+        
+
+        .attention-btn {
+            background: transparent;
+            border: 1px solid #E1E8ED;
+            color: #657786;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        
+        .attention-btn:hover {
+            background: #ffa500;
+            color: white;
+            border-color: #ffa500;
+        }
+
+        .junk-btn {
+            background: transparent;
+            border: 1px solid #E1E8ED;
+            color: #657786;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 15px;
+        }
+        
+        .junk-btn:hover {
+            background: #ff4444;
+            color: white;
+            border-color: #ff4444;
+        }
+
+    
+        /* Attention styling - orange left border + bold */
+        .gmail-list-item.attention {
+            border-left: 4px solid #FF6B35 !important;
+            background: #FFF5F0 !important;
+        }
+        
+        .gmail-list-item.attention .gmail-item-title {
+            font-weight: 900 !important;
+            color: #D84315 !important;
+        }
+        
+        .attention-badge {
+            color: #FF6B35;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        
+        /* Fade out animation for junk */
+        .fade-out {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-20px); }
+        }
+
+    
+        /* ========== RICH MEDIA TWEET DETAIL PANEL ========== */
+        .tweet-detail-panel {
+            padding: 24px;
+            background: white;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .tweet-author-section {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #EFF3F4;
+            padding-bottom: 12px;
+        }
+        
+        .tweet-author-info {
+            flex: 1;
+        }
+        
+        .tweet-author-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #14171A;
+            line-height: 1.3;
+        }
+        
+        .tweet-author-handle {
+            color: #657786;
+            font-size: 15px;
+            margin-top: 2px;
+        }
+        
+        .tweet-timestamp {
+            color: #657786;
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        .tweet-content-text {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #14171A;
+            margin: 16px 0;
+            word-wrap: break-word;
+        }
+        
+        .tweet-media-container {
+            margin: 16px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #EFF3F4;
+        }
+        
+        .tweet-media-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .tweet-link-box {
+            margin: 16px 0;
+            padding: 12px;
+            background: #F7F9FA;
+            border-radius: 8px;
+            border: 1px solid #EFF3F4;
+        }
+        
+        .tweet-link-url {
+            color: #1DA1F2;
+            text-decoration: none;
+            word-break: break-all;
+            font-size: 14px;
+        }
+        
+        .tweet-link-url:hover {
+            text-decoration: underline;
+        }
+        
+        .tweet-engagement-bar {
+            display: flex;
+            gap: 20px;
+            padding: 16px;
+            background: #F7F9FA;
+            border-radius: 12px;
+            margin: 16px 0;
+            border: 1px solid #EFF3F4;
+        }
+        
+        .tweet-engagement-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #657786;
+        }
+        
+        .tweet-engagement-icon {
+            font-size: 16px;
+        }
+        
+        .tweet-engagement-count {
+            font-weight: 600;
+            color: #14171A;
+        }
+        
+        .tweet-intelligence-box {
+            background: #E8F4FD;
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 16px;
+            border: 1px solid #B3D9F2;
+        }
+        
+        .tweet-keywords {
+            font-size: 14px;
+            color: #1A1A1A;
+            margin-bottom: 8px;
+        }
+        
+        .tweet-ai-score {
+            font-size: 14px;
+            color: #1A1A1A;
+            font-weight: 600;
+        }
+        
+        .tweet-view-original {
+            margin-top: 16px;
+            padding: 12px;
+            background: #1DA1F2;
+            color: white;
+            text-align: center;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .tweet-view-original:hover {
+            background: #1991DA;
+        }
+    
+        /* ========== TWITTER-STYLE CARDS FOR TWEETS ========== */
+        .twitter-card {
+            background: white;
+            border: 1px solid #E1E8ED;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+        
+        .twitter-card:hover {
+            border-color: #1DA1F2;
+            box-shadow: 0 2px 8px rgba(29, 161, 242, 0.1);
+        }
+        
+        .twitter-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .twitter-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1DA1F2, #0D8BD9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 12px;
+        }
+        
+        .twitter-author {
+            flex: 1;
+        }
+        
+        .twitter-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #14171A;
+        }
+        
+        .twitter-handle {
+            color: #657786;
+            font-size: 14px;
+        }
+        
+        .twitter-time {
+            color: #657786;
+            font-size: 14px;
+        }
+        
+        .twitter-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #14171A;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .twitter-text a {
+            color: #1DA1F2;
+            text-decoration: none;
+        }
+        
+        .twitter-text a:hover {
+            text-decoration: underline;
+        }
+        
+        .twitter-media {
+            margin: 12px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #E1E8ED;
+        }
+        
+        .twitter-media img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .twitter-link {
+            display: inline-block;
+            color: #1DA1F2;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .twitter-link:hover {
+            text-decoration: underline;
+        }
+        
+        .twitter-engagement {
+            display: flex;
+            gap: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #EFF3F4;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #657786;
+        }
+        
+        .twitter-engagement-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+    
+        .twitter-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #EFF3F4;
+        }
+        
+        .twitter-action-btn {
+            padding: 6px 12px;
+            border: 1px solid #E1E8ED;
+            background: white;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .twitter-action-btn:hover {
+            background: #F7F9FA;
+            border-color: #1DA1F2;
+        }
+        
+        .twitter-junk-btn {
+            color: #657786;
+        }
+        
+        .twitter-junk-btn:hover {
+            color: #E0245E;
+            border-color: #E0245E;
+        }
+        
+        .twitter-attention-btn {
+            color: #657786;
+        }
+        
+        .twitter-attention-btn:hover {
+            color: #FF6B35;
+            border-color: #FF6B35;
+        }
+        
+        .twitter-card.attention {
+            border-left: 4px solid #FF6B35;
+        }
+        
+        .twitter-card.attention .twitter-name {
+            color: #FF6B35;
+            font-weight: 700;
+        }
+    
+        .twitter-intelligence {
+            background: #e8f4fd;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 8px;
+            border-left: 3px solid #1DA1F2;
+        }
+        
+        .twitter-keywords {
+            color: #14171a;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .twitter-ai-score {
+            color: #14171a;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>📰 SAGE - Premium Financial Intelligence</h1>
+            
+            <div class="view-filters" style="display: flex; gap: 10px;">
+                <button class="view-btn active" onclick="switchToHybrid()">🔄 Hybrid</button>
+                <button class="view-btn" onclick="switchToNewsFlow()">📰 News Flow</button>
+                <button class="view-btn" onclick="switchToAnalysis()">📊 Analysis</button>
+                <button class="view-btn" onclick="switchToTwitter()">🐦 Tweets</button>
+                <button class="view-btn" onclick="switchToJunk()">🗑️ Junk</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="feed" id="feed"></div>
+    
+    <!-- Overlay -->
+    <div id="overlay" class="overlay" onclick="closeEmailDetail()"></div>
+    
+    <!-- Gmail-style Detail Panel -->
+    <div id="detailPanel" class="detail-panel">
+        <div class="detail-header">
+            <h2>Email</h2>
+            <button class="detail-close" onclick="closeEmailDetail()">&times;</button>
+        </div>
+        <div class="detail-body" id="detailContent">
+            Loading...
+        </div>
+    </div>
+
+    <script>
+
+        function toggleDetails(cardId) {
+            const details = document.getElementById('details-' + cardId);
+            const btn = document.getElementById('btn-' + cardId);
+            
+            if (details.classList.contains('visible')) {
+                details.classList.remove('visible');
+                btn.textContent = 'Show More ▼';
+            } else {
+                details.classList.add('visible');
+                btn.textContent = 'Show Less ▲';
+            }
+        }
+        
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '';
+            
+            // Convert to Brazil time (UTC-3)
+            const date = new Date(timestamp);
+            
+            // Get UTC time
+            const utcTime = date.getTime() + (date.getTimezoneOffset() * 60000);
+            
+            // Brazil is UTC-3
+            const brazilTime = new Date(utcTime + (-3 * 3600000));
+            
+            // Format: "Nov 4, 12:07 PM"
+            const month = brazilTime.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+            const day = brazilTime.getUTCDate();
+            const hours = brazilTime.getUTCHours();
+            const minutes = brazilTime.getUTCMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+            
+            return month + ' ' + day + ', ' + displayHours + ':' + displayMinutes + ' ' + ampm;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function openEmailDetail(emailId) {
+            const panel = document.getElementById('detailPanel');
+            const overlay = document.getElementById('overlay');
+            const content = document.getElementById('detailContent');
+            
+            content.innerHTML = '<div style="padding: 20px;">Loading...</div>';
+            panel.classList.add('open');
+            overlay.classList.add('open');
+            
+            try {
+                const response = await fetch('/api/email/' + emailId);
+                const email = await response.json();
+                
+                if (email.error) {
+                    content.innerHTML = '<div style="padding: 20px; color: red;">Error: ' + email.error + '</div>';
+                    return;
+                }
+                
+                // Check if NewsBreif story
+                const isNewsbrief = email.sender_tag && email.sender_tag.includes('Newsbrief');
+                
+                const isTweet = email.source_type === 'tweet';
+                
+                if (isTweet) {
+                    // Show tweet-specific content
+                    let html = '<div style="padding: 20px;">';
+                    html += '<h2 style="font-size: 18px; margin-bottom: 10px;">' + email.sender_tag + '</h2>';
+                    html += '<div style="color: #657786; margin-bottom: 15px; font-size: 14px;">' + email.created_at + '</div>';
+                    
+                    // Tweet text
+                    html += '<div style="font-size: 16px; line-height: 1.6; margin-bottom: 15px;">';
+                    html += email.content_text;
+                    html += '</div>';
+                    
+                    // Keywords
+                    if (email.actors) {
+                        html += '<div style="background: #e8f4fd; padding: 10px; margin: 10px 0; border-radius: 6px;">';
+                        html += '<strong>🔑 Keywords:</strong><br>' + email.actors + '</div>';
+                    }
+                    
+                    // Link
+                    if (email.link) {
+                        html += '<div style="margin: 15px 0;"><a href="' + email.link + '" target="_blank" style="color: #1DA1F2; text-decoration: none; font-weight: bold;">🔗 View Tweet</a></div>';
+                    }
+                    
+                    // AI Score
+                    if (email.ai_score) {
+                        html += '<div style="color: #657786; margin-top: 15px;">🤖 AI: ' + email.ai_score + '/10</div>';
+                    }
+                    
+                    html += '</div>';
+                    content.innerHTML = html;
+                } else if (isNewsbrief) {
+                    // Show story-specific content only
+                    let html = '<div style="padding: 20px;">';
+                    html += '<h2>' + email.title + '</h2>';
+                    html += '<div style="color: #657786; margin: 10px 0;">' + email.sender_tag + '</div>';
+                    
+                    if (email.actors) {
+                        html += '<div style="background: #e8f4fd; padding: 10px; margin: 10px 0; border-radius: 6px;">';
+                        html += '<strong>🔑 Keywords:</strong><br>' + email.actors + '</div>';
+                    }
+                    
+                    if (email.enriched_content) {
+                        html += '<div style="margin: 15px 0; line-height: 1.8;">';
+                        html += '<strong>📝 Story:</strong><br>';
+                        html += email.enriched_content.replace(/•/g, '<br>•');
+                        html += '</div>';
+                    }
+                    
+                    if (email.link) {
+                        html += '<div style="margin: 15px 0;"><a href="' + email.link + '" target="_blank" style="color: #1DA1F2;">🔗 Read Article</a></div>';
+                    }
+                    
+                    html += '</div>';
+                    content.innerHTML = html;
+                } else {
+                    // Non-NewsBreif - show full HTML
+                    content.innerHTML = '<iframe id="emailIframe" style="width: 100%; height: 700px;"></iframe>';
+                    const iframe = document.getElementById('emailIframe');
+                    if (iframe && email.content_html) {
+                        iframe.contentWindow.document.open();
+                        iframe.contentWindow.document.write(email.content_html);
+                        iframe.contentWindow.document.close();
+                    }
+                }
+            } catch (error) {
+                content.innerHTML = '<div style="padding: 20px; color: red;">Error: ' + error.message + '</div>';
+            }
+        }
+        function closeEmailDetail() {
+            document.getElementById('detailPanel').classList.remove('open');
+            document.getElementById('overlay').classList.remove('open');
+        }
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeEmailDetail();
+        });
+
+
+
+
+        
+        function updateActiveButton(btnId) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            const button = document.getElementById(btnId);
+            if (button) button.classList.add('active');
+        }
+        
+        function switchToHybrid() {
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Reload with Twitter cards (current loadFeed)
+            loadFeed();
+        }
+        
+        function switchToNewsFlow() {
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Fetch data and render Gmail list
+            fetch('/api/feed')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.items) {
+                        renderGmailList(data.items);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        // Render Gmail-style list view
+        function renderGmailList(items, isJunkView = false) {
+            const feedDiv = document.getElementById('feed');
+            // Don't clear if isJunkView (header was already set)
+            if (!isJunkView) {
+                feedDiv.innerHTML = '';
+            }
+            
+            // For Junk view, show ALL items
+            // For News Flow, show only NewsBreif  
+            // For Tweets view, show ALL items (don't filter)
+            let itemsToShow;
+            if (isJunkView) {
+                itemsToShow = items;  // Junk view: all items
+            } else if (items.length > 0 && items[0].source_type === 'tweet') {
+                itemsToShow = items;  // Tweets view: all items
+            } else {
+                itemsToShow = items.filter(item =>   // News Flow: only NewsBreif
+                    item.sender_tag && item.sender_tag.includes('Newsbrief')
+                );
+            }
+            
+            itemsToShow.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'gmail-list-row';
+                row.setAttribute('data-email-id', item.id);
+                if (item.is_attention) row.classList.add('attention');
+                
+                // Main content div
+                const mainDiv = document.createElement('div');
+                mainDiv.className = 'gmail-row-main';
+                
+                // Line 1: Sender | Time
+                const line1 = document.createElement('div');
+                line1.className = 'row-line-1';
+                line1.innerHTML = '<span class="gmail-sender">' + (item.sender_tag || 'Unknown') + '</span>' +
+                                 '<span class="gmail-time">' + new Date(item.created_at).toLocaleString('en-US', {
+                                     month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit'
+                                 }).replace(', ', ' ') + '</span>';
+                
+                // Line 2: Title
+                const line2 = document.createElement('div');
+                line2.className = 'row-line-2';
+                line2.textContent = item.title;
+                
+                // Line 3: Keywords | Bullets
+                const line3 = document.createElement('div');
+                line3.className = 'row-line-3';
+                let bulletPreview = '';
+                if (item.enriched_content) {
+                    const bulletMatches = item.enriched_content.match(/•[^•]+/g);
+                    if (bulletMatches && bulletMatches.length > 0) {
+                        const first2 = bulletMatches.slice(0, 2).map(b => b.trim());
+                        bulletPreview = first2.join(' ');
+                        if (bulletMatches.length > 2) {
+                            bulletPreview += ' (+' + (bulletMatches.length - 2) + ' more)';
+                        }
+                    }
+                }
+                line3.innerHTML = '<span class="preview-keywords">🔑 ' + (item.actors || '') + '</span>' +
+                                 '<span class="preview-separator">|</span>' +
+                                 '<span class="preview-bullets">📝 ' + bulletPreview + '</span>';
+                
+                mainDiv.appendChild(line1);
+                mainDiv.appendChild(line2);
+                mainDiv.appendChild(line3);
+                
+                // Buttons div
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'row-buttons';
+                
+                if (isJunkView) {
+                    const restoreBtn = document.createElement('button');
+                    restoreBtn.className = 'attention-btn';
+                    restoreBtn.textContent = '↩️';
+                    restoreBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        unmarkJunk(item.id);
+                    };
+                    buttonsDiv.appendChild(restoreBtn);
+                } else {
+                    const attBtn = document.createElement('button');
+                    attBtn.className = 'attention-btn';
+                    attBtn.textContent = '⚠️';
+                    attBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        toggleAttention(item.id);
+                    };
+                    
+                    const junkBtn = document.createElement('button');
+                    junkBtn.className = 'junk-btn';
+                    junkBtn.textContent = '🗑️';
+                    junkBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        markAsJunk(item.id);
+                    };
+                    
+                    buttonsDiv.appendChild(attBtn);
+                    buttonsDiv.appendChild(junkBtn);
+                }
+                
+                row.appendChild(mainDiv);
+                row.appendChild(buttonsDiv);
+                
+                // Click to open detail
+                row.onclick = function() {
+                    openEmailDetail(item.id);
+                };
+                
+                feedDiv.appendChild(row);
+            });
+        }
+        
+        function loadFeed() {
+            fetch('/api/feed?t=' + new Date().getTime())
+                .then(response => response.json())
+                .then(data => {
+                    const feedDiv = document.getElementById('feed');
+                    feedDiv.innerHTML = '';
+                    
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            const emailDiv = document.createElement('div');
+                            emailDiv.className = 'email-item';
+                            
+                            let html = '';
+                            html += '<div class="sender">@' + (item.sender_tag || 'unknown') + '</div>';
+                            html += '<div class="timestamp">· ' + formatTimestamp(item.created_at) + '</div>';
+                            html += '<div class="email-title">' + (item.title || 'No title') + '</div>';
+                            
+                            emailDiv.innerHTML = html;
+                            
+                            // Add Show More button
+                            const showMoreBtn = document.createElement('button');
+                            showMoreBtn.className = 'show-more-btn';
+                            showMoreBtn.id = 'btn-' + item.id;
+                            showMoreBtn.textContent = 'Show More ▼';
+                            const cardId = item.id; // Capture in closure
+                            showMoreBtn.onclick = function() { toggleDetails(cardId); };
+                            emailDiv.appendChild(showMoreBtn);
+                            
+
+                            // Create collapsible details div and append it immediately
+                            const detailsDiv = document.createElement('div');
+                            detailsDiv.className = 'card-details';
+                            detailsDiv.id = 'details-' + item.id;
+                            
+                            // **POPULATE THE DETAILS DIV WITH ENRICHED CONTENT**
+                            let detailsHTML = '';
+                            
+                            // ALWAYS show keywords first (if available)
+                            if (item.actors) {
+                                detailsHTML += `<div style="margin-bottom: 10px; color: #657786;">
+                                    <strong>🔑 Keywords:</strong> ${item.actors}
+                                </div>`;
+                            }
+                            
+                            // Show enriched content (with HTML for proper bullet formatting)
+                            if (item.enriched_content) {
+                                // Convert plain bullets to HTML for vertical display
+                                let content = item.enriched_content;
+                                
+                                // Replace text bullets with HTML list items
+                                content = content.replace(/• /g, '<br>• ');
+                                
+                                detailsHTML += `<div style="margin-bottom: 10px; line-height: 1.8;">
+                                    ${content}
+                                </div>`;
+                            }
+                            
+                            // ALWAYS show link (if available)
+                            if (item.link) {
+                                detailsHTML += `<div style="margin-top: 10px;">
+                                    <a href="${item.link}" target="_blank" style="color: #1DA1F2; text-decoration: none;">
+                                        🔗 Read Full Article
+                                    </a>
+                                </div>`;
+                            }
+                            
+                            // Show AI score
+                            if (item.ai_score) {
+                                detailsHTML += `<div style="margin-top: 10px; color: #657786;">
+                                    🤖 AI: ${item.ai_score}/10
+                                </div>`;
+                            }
+                            
+                            // If nothing to show
+                            if (!detailsHTML) {
+                                detailsHTML = 'No enrichment available.';
+                            }
+                            
+                            detailsDiv.innerHTML = detailsHTML;
+                            emailDiv.appendChild(detailsDiv); // APPEND IT NOW!
+
+                            
+                            
+                            // Add footer
+                            const footerDiv = document.createElement('div');
+                            footerDiv.className = 'ai-score';
+                            footerDiv.textContent = '🤖 AI: ' + (item.ai_score || item.ai_relevance_score || 0) + '/10';
+                            detailsDiv.appendChild(footerDiv);  // Changed to detailsDiv
+                            
+                            feedDiv.appendChild(emailDiv);
+                        });
+                        
+                        console.log('Loaded ' + data.items.length + ' items with HTML popup');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Load feed
+        loadFeed();
+
+        
+        async function switchToAnalysis() {
+            const feedDiv = document.getElementById('feed');
+            feedDiv.innerHTML = '<div class="loading">Loading analysis...</div>';
+            
+            try {
+                const response = await fetch('/api/feed?t=' + Date.now());
+                const data = await response.json();
+                const items = (data.items || []).filter(item => !item.sender_tag.includes('Newsbrief'));
+                
+                if (items.length === 0) {
+                    feedDiv.innerHTML = '<div style="padding: 40px; text-align: center; color: #657786;">No analysis items.</div>';
+                    return;
+                }
+                
+                feedDiv.innerHTML = '';
+                renderTwitterCards(items);
+            } catch (error) {
+                feedDiv.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+
+        async function renderTwitterCards(tweets) {
+            const feedDiv = document.getElementById('feed');
+            feedDiv.innerHTML = '<h2 style="margin-bottom: 20px;">🐦 Twitter Feed</h2>';
+            
+            tweets.forEach(tweet => {
+                const card = document.createElement('div');
+                card.className = 'twitter-card';
+                card.setAttribute('data-email-id', tweet.id);
+                
+                // Add attention class if flagged
+                if (tweet.is_attention) {
+                    card.classList.add('attention');
+                }
+                
+                // Get first letter for avatar
+                const firstLetter = (tweet.sender_tag || '@')[1] || 'T';
+                
+                // Get display name from custom_fields if available
+                let displayName = tweet.sender_tag;
+                if (tweet.custom_fields) {
+                    try {
+                        const custom = JSON.parse(tweet.custom_fields);
+                        displayName = custom.display_name || tweet.sender_tag;
+                    } catch(e) {}
+                }
+                
+                // Header
+                let html = '<div class="twitter-card-header">';
+                html += '<div class="twitter-avatar">' + firstLetter.toUpperCase() + '</div>';
+                html += '<div class="twitter-author">';
+                html += '<div class="twitter-name">' + displayName + '</div>';
+                html += '<div class="twitter-handle">' + tweet.sender_tag + '</div>';
+                html += '</div>';
+                html += '<div class="twitter-time">' + formatTimestamp(tweet.created_at) + '</div>';
+                html += '</div>';
+                
+                // Tweet text with clickable links
+                let tweetText = tweet.content_text || '';
+                tweetText = tweetText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+                html += '<div class="twitter-text">' + tweetText + '</div>';
+                
+                // Media (if available in custom_fields)
+                if (tweet.custom_fields) {
+                    try {
+                        const custom = JSON.parse(tweet.custom_fields);
+                        if (custom.has_media && custom.media && custom.media.length > 0) {
+                            html += '<div class="twitter-media">';
+                            
+                            custom.media.forEach(function(mediaItem) {
+                                if (mediaItem.type === 'photo') {
+                                    html += '<img src="' + mediaItem.url + '" class="twitter-media-image" alt="Tweet photo" onerror="this.style.display=\'none\'"/>';
+                                } else if (mediaItem.type === 'video') {
+                                    html += '<video controls class="twitter-media-image" poster="' + (mediaItem.thumbnail || '') + '">';
+                                    html += '<source src="' + mediaItem.url + '" type="video/mp4">';
+                                    html += 'Your browser does not support video.</video>';
+                                } else if (mediaItem.type === 'animated_gif') {
+                                    html += '<video autoplay loop muted playsinline class="twitter-media-image">';
+                                    html += '<source src="' + mediaItem.url + '" type="video/mp4"></video>';
+                                }
+                            });
+                            
+                            html += '</div>';
+                        }
+                    } catch(e) {
+                        console.error('Error rendering media:', e);
+                    }
+                }
+                
+                // Keywords & AI Score (NEW!)
+                if (tweet.actors || tweet.ai_score) {
+                    html += '<div class="twitter-intelligence">';
+                    if (tweet.actors) {
+                        html += '<div class="twitter-keywords"><strong>🔑 Keywords:</strong> ' + tweet.actors + '</div>';
+                    }
+                    if (tweet.ai_score) {
+                        html += '<div class="twitter-ai-score"><strong>🤖 AI Score:</strong> ' + tweet.ai_score + '/10</div>';
+                    }
+                    html += '</div>';
+                }
+                
+                // Link
+                if (tweet.link) {
+                    html += '<a href="' + tweet.link + '" target="_blank" class="twitter-link">🔗 View Tweet</a>';
+                }
+                
+                // Engagement metrics (if available)
+                if (tweet.custom_fields) {
+                    try {
+                        const custom = JSON.parse(tweet.custom_fields);
+                        if (custom.likes !== undefined || custom.retweets !== undefined) {
+                            html += '<div class="twitter-engagement">';
+                            if (custom.replies) html += '<div class="twitter-engagement-item">💬 ' + custom.replies + '</div>';
+                            if (custom.retweets) html += '<div class="twitter-engagement-item">🔁 ' + custom.retweets + '</div>';
+                            if (custom.likes) html += '<div class="twitter-engagement-item">❤️ ' + custom.likes + '</div>';
+                            if (custom.views) html += '<div class="twitter-engagement-item">👁️ ' + custom.views + '</div>';
+                            html += '</div>';
+                        }
+                    } catch(e) {}
+                }
+                
+                // Action buttons
+                html += '<div class="twitter-actions">';
+                html += '<button class="twitter-action-btn twitter-attention-btn" onclick="event.stopPropagation(); toggleAttention(\''+tweet.id+'\')">⚠️ Attention</button>';
+                html += '<button class="twitter-action-btn twitter-junk-btn" onclick="event.stopPropagation(); markAsJunk(\''+tweet.id+'\')">🗑️ Junk</button>';
+                html += '</div>';
+                
+                card.innerHTML = html;
+                feedDiv.appendChild(card);
+            });
+        }
+        
+        function switchToTwitter() {
+            currentView = 'twitter';
+            updateActiveButton('twitter-btn');
+            
+            fetch('/api/feed?source=tweet')
+                .then(response => response.json())
+                .then(data => {
+                    renderTwitterCards(data.items || []);
+                })
+                .catch(error => console.error('Error loading tweets:', error));
+        }
+        
+        async function switchToJunk() {
+            const feedDiv = document.getElementById('feed');
+            feedDiv.innerHTML = '<div class="loading">Loading junk...</div>';
+            
+            try {
+                const response = await fetch('/api/feed?view=junk&t=' + Date.now());
+                const data = await response.json();
+                const items = data.items || [];
+                
+                if (items.length === 0) {
+                    feedDiv.innerHTML = '<div style="padding: 40px; text-align: center; color: #657786;">🎉 No junk!</div>';
+                    return;
+                }
+                
+                // Clear and add header
+                feedDiv.innerHTML = '<h3 style="padding: 20px; color: #657786; margin: 0;">🗑️ Junk (' + items.length + ')</h3>';
+                // renderGmailList will append (not clear) when isJunkView=true
+                renderGmailList(items, true);
+            } catch (error) {
+                feedDiv.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+            }
+        }
+        
+        async function markAsJunk(emailId) {
+            const response = await fetch('/api/mark_junk/' + emailId, { method: 'POST' });
+            if (response.ok) {
+                const el = document.querySelector('[data-email-id="' + emailId + '"]');
+                if (el) {
+                    el.classList.add('fade-out');
+                    setTimeout(() => el.remove(), 300);
+                }
+            }
+        }
+        
+        async function unmarkJunk(emailId) {
+            const response = await fetch('/api/unmark_junk/' + emailId, { method: 'POST' });
+            if (response.ok) {
+                const el = document.querySelector('[data-email-id="' + emailId + '"]');
+                if (el) {
+                    el.classList.add('fade-out');
+                    setTimeout(() => el.remove(), 300);
+                }
+            }
+        }
+        
+        async function toggleAttention(emailId) {
+            const response = await fetch('/api/toggle_attention/' + emailId, { method: 'POST' });
+            if (response.ok) {
+                const data = await response.json();
+                const el = document.querySelector('[data-email-id="' + emailId + '"]');
+                if (el) {
+                    if (data.is_attention) {
+                        el.classList.add('attention');
+                    } else {
+                        el.classList.remove('attention');
+                    }
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>

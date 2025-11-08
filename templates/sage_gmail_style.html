@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAGE Intelligence Feed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #192734;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid #38444d;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            color: #1DA1F2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .tweet-card {
+            background-color: #1e2a38;
+            border: 1px solid #38444d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        
+        .tweet-card:hover {
+            background-color: #243447;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .sender {
+            color: #8899a6;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .actors {
+            margin: 12px 0;
+        }
+        
+        .actor-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #1DA1F2, #0d8bd9);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .themes {
+            margin: 12px 0;
+        }
+        
+        .theme-badge {
+            display: inline-block;
+            border: 1px solid #1DA1F2;
+            color: #1DA1F2;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .summary-label {
+            color: #1DA1F2;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        
+        .summary {
+            color: #e1e8ed;
+            font-size: 15px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            background-color: #151f2b;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #1DA1F2;
+        }
+        
+        .ai-score {
+            display: inline-block;
+            background: linear-gradient(135deg, #17bf63, #14a854);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+        
+        .load-more {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        .load-more button {
+            background: linear-gradient(135deg, #1DA1F2, #0d8bd9);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        /* Gmail-Style Email Modal */
+        .email-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.2s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .email-container {
+            position: relative;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            margin: 5vh auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { 
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .email-header {
+            background: #f5f5f5;
+            padding: 20px 30px;
+            border-bottom: 1px solid #ddd;
+            border-radius: 8px 8px 0 0;
+            flex-shrink: 0;
+        }
+        
+        .email-subject {
+            font-size: 22px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 12px;
+        }
+        
+        .email-meta {
+            display: flex;
+            align-items: center;
+            color: #5f6368;
+            font-size: 14px;
+        }
+        
+        .email-from {
+            font-weight: 500;
+            color: #202124;
+            margin-right: 8px;
+        }
+        
+        .email-date {
+            color: #5f6368;
+            margin-left: auto;
+        }
+        
+        .email-body {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            padding: 30px;
+        }
+        
+        .email-body iframe {
+            width: 100%;
+            border: none;
+            display: block;
+        }
+        
+        /* Scrollbar for email body */
+        .email-body::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .email-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .email-body::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 6px;
+        }
+        
+        .email-body::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .close-email {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: none;
+            font-size: 24px;
+            color: #5f6368;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        
+        .close-email:hover {
+            background: #f1f3f4;
+            color: #202124;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SAGE Intelligence Feed</h1>
+            <p style="color: #8899a6; margin-top: 10px;">Click any email to view original rendering</p>
+        </div>
+        
+        <div id="feed"></div>
+        
+        <div class="load-more">
+            <button onclick="loadMore()" id="loadBtn">Load More</button>
+        </div>
+    </div>
+
+    <!-- Gmail-Style Email Modal -->
+    <div id="emailModal" class="email-modal" onclick="closeEmailIfOutside(event)">
+        <div class="email-container" onclick="event.stopPropagation()">
+            <button class="close-email" onclick="closeEmail()">&times;</button>
+            <div class="email-header">
+                <div class="email-subject" id="emailSubject"></div>
+                <div class="email-meta">
+                    <span class="email-from" id="emailFrom"></span>
+                    <span class="email-date" id="emailDate"></span>
+                </div>
+            </div>
+            <div class="email-body" id="emailBody">
+                <!-- Email HTML will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let offset = 0;
+        const limit = 20;
+        
+        function formatContent(text) {
+            if (!text) return '';
+            text = text.replace(/^Rule: (.+)$/gm, '<h3 style="color: #4fbdba;">📋 $1</h3>');
+            text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/^• (.+)$/gm, '<li>$1</li>');
+            text = text.replace(/^- (.+)$/gm, '<li>$1</li>');
+            text = text.replace(/(<li>.*?<\/li>\s*)+/g, match => '<ul>' + match + '</ul>');
+            const paragraphs = text.split(/\n\n+/);
+            text = paragraphs.map(p => {
+                if (p.startsWith('<h') || p.startsWith('<ul') || p.startsWith('<ol')) return p;
+                return '<p>' + p + '</p>';
+            }).join('\n');
+            return text;
+        }
+        
+        function showEmail(email) {
+            const modal = document.getElementById('emailModal');
+            const subject = document.getElementById('emailSubject');
+            const from = document.getElementById('emailFrom');
+            const date = document.getElementById('emailDate');
+            const body = document.getElementById('emailBody');
+            
+            // Set header info
+            subject.textContent = email.title || 'No Subject';
+            from.textContent = email.display_name || 'Unknown Sender';
+            date.textContent = email.created_at ? new Date(email.created_at).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            }) : '';
+            
+            // Render email HTML in iframe for isolation
+            body.innerHTML = '';
+            
+            if (email.content_html && email.content_html.trim()) {
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100%';
+                iframe.style.minHeight = '600px';
+                body.appendChild(iframe);
+                
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                doc.open();
+                doc.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 14px;
+                                line-height: 1.6;
+                                color: #202124;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            img {
+                                max-width: 100%;
+                                height: auto;
+                            }
+                            table {
+                                border-collapse: collapse;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${email.content_html}
+                    </body>
+                    </html>
+                `);
+                doc.close();
+                
+                // Auto-resize iframe
+                setTimeout(() => {
+                    const height = doc.body.scrollHeight;
+                    iframe.style.height = height + 'px';
+                }, 200);
+            } else {
+                // Fallback to formatted summary
+                body.innerHTML = `
+                    <div style="font-family: Arial, sans-serif; color: #202124; padding: 20px;">
+                        ${formatContent(email.smart_summary || 'No content available')}
+                    </div>
+                `;
+            }
+            
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeEmail() {
+            const modal = document.getElementById('emailModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        function closeEmailIfOutside(event) {
+            if (event.target.id === 'emailModal') {
+                closeEmail();
+            }
+        }
+        
+        // Close with Escape key
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeEmail();
+        });
+        
+        function createEmailCard(item) {
+            const div = document.createElement('div');
+            div.className = 'tweet-card';
+            div.onclick = () => showEmail(item);
+            
+            let html = `
+                <div class="sender">📰 @${item.display_name || 'Unknown'} 
+                    <span style="color: #657786; font-size: 13px; margin-left: 5px;">
+                        · ${item.created_at ? item.created_at.substring(0, 10) + " " + item.created_at.substring(11, 16) : ""}
+                    </span>
+                </div>
+                <div class="title">${item.title || 'No title'}</div>
+            `;
+            
+            if (item.actors && item.actors.length > 0) {
+                html += '<div class="actors">👥 ';
+                item.actors.forEach(actor => {
+                    html += `<span class="actor-badge">${actor}</span>`;
+                });
+                html += '</div>';
+            }
+            
+            if (item.themes && item.themes.length > 0) {
+                html += '<div class="themes">🏷️ ';
+                item.themes.forEach(theme => {
+                    html += `<span class="theme-badge">${theme}</span>`;
+                });
+                html += '</div>';
+            }
+            
+            if (item.smart_summary && item.smart_summary !== 'N/A') {
+                html += '<div class="summary-label">📝 Summary</div>';
+                html += '<div class="summary">' + formatContent(item.smart_summary) + '</div>';
+            }
+            
+            if (item.ai_relevance_score) {
+                html += `<span class="ai-score">🤖 AI: ${item.ai_relevance_score}/10</span>`;
+            }
+            
+            div.innerHTML = html;
+            return div;
+        }
+        
+        function loadEmails() {
+            fetch(`/api/feed?offset=${offset}&limit=${limit}`)
+                .then(response => response.json())
+                .then(data => {
+                    const feed = document.getElementById('feed');
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            feed.appendChild(createEmailCard(item));
+                        });
+                        offset += data.items.length;
+                    }
+                    if (!data.has_more) {
+                        document.getElementById('loadBtn').style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        function loadMore() {
+            loadEmails();
+        }
+        
+        loadEmails();
+    </script>
+</body>
+</html>

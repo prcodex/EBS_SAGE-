@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env
+
+# Logs
+*.log
+logs/
+
+# Database
+*.lance
+*.db
+lancedb/
+
+# API Keys and Secrets
+config/secrets.json
+.env
+*.key
+*_api_key*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+*.bak
+processed_ids_ebs.json
+
+# Archives
+*.tar.gz
+*.zip

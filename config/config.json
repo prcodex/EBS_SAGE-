@@ -1,0 +1,32 @@
+{
+  "database": {
+    "type": "LanceDB",
+    "location": "/mnt/lancedb_clean",
+    "table": "unified_feed"
+  },
+  "api": {
+    "flask_port": 8545,
+    "endpoints": [
+      "/api/feed",
+      "/api/stats"
+    ]
+  },
+  "cron_schedule": {
+    "newsbrief": "0 */2 * * *",
+    "twitter": "*/15 * * * *",
+    "junk_classifier": "5,20,35,50 * * * *"
+  },
+  "email": {
+    "imap_server": "imap.gmail.com",
+    "batch_size": 20
+  },
+  "twitter": {
+    "api_endpoint": "https://api.twitter.com/2/lists/{list_id}/tweets",
+    "list_id": "SANITIZED"
+  },
+  "ai": {
+    "provider": "Anthropic Claude",
+    "model": "claude-3-haiku-20240307",
+    "api_key": "SANITIZED"
+  }
+}

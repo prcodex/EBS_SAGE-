@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAGE Intelligence Feed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #15202B;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #38444d;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #1DA1F2;
+            margin: 0;
+            font-size: 28px;
+        }
+        .tweet-card {
+            background-color: #192734;
+            border: 1px solid #38444d;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tweet-card:hover {
+            background-color: #202e3a;
+            border-color: #1DA1F2;
+        }
+        .sender {
+            color: #8899a6;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .summary {
+            color: #e1e8ed;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-top: 10px;
+        }
+        .ai-score {
+            display: inline-block;
+            background-color: #1DA1F2;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .actors-themes {
+            margin: 10px 0;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #253341;
+            color: #1DA1F2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8899a6;
+        }
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #e0245e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📰 SAGE Intelligence Feed</h1>
+        </div>
+        <div id="feed">
+            <div class="loading">Loading emails...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadFeed() {
+            const feedDiv = document.getElementById('feed');
+            
+            try {
+                const response = await fetch('/api/feed');
+                const data = await response.json();
+                
+                if (!Array.isArray(data)) {
+                    feedDiv.innerHTML = '<div class="error">Error loading feed</div>';
+                    return;
+                }
+                
+                if (data.length === 0) {
+                    feedDiv.innerHTML = '<div class="error">No emails found</div>';
+                    return;
+                }
+                
+                feedDiv.innerHTML = '';
+                
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'tweet-card';
+                    
+                    // Format timestamp - show as is from API (already in UTC-3)
+                    const timestamp = item.created_at || '';
+                    
+                    // Parse actors and themes
+                    let actors = [];
+                    let themes = [];
+                    
+                    try {
+                        if (typeof item.actors === 'string') {
+                            actors = JSON.parse(item.actors.replace(/'/g, '"'));
+                        } else if (Array.isArray(item.actors)) {
+                            actors = item.actors;
+                        }
+                    } catch(e) {}
+                    
+                    try {
+                        if (typeof item.themes === 'string') {
+                            themes = JSON.parse(item.themes.replace(/'/g, '"'));
+                        } else if (Array.isArray(item.themes)) {
+                            themes = item.themes;
+                        }
+                    } catch(e) {}
+                    
+                    // Build actors HTML
+                    let actorsHtml = '';
+                    if (actors.length > 0) {
+                        actorsHtml = '<div class="actors-themes">👥 ';
+                        actors.forEach(actor => {
+                            actorsHtml += `<span class="badge">${actor}</span>`;
+                        });
+                        actorsHtml += '</div>';
+                    }
+                    
+                    // Build themes HTML
+                    let themesHtml = '';
+                    if (themes.length > 0) {
+                        themesHtml = '<div class="actors-themes">🏷️ ';
+                        themes.forEach(theme => {
+                            themesHtml += `<span class="badge">${theme}</span>`;
+                        });
+                        themesHtml += '</div>';
+                    }
+                    
+                    card.innerHTML = `
+                        <div class="sender">📰 @${item.display_name} · ${timestamp}</div>
+                        <div class="title">${item.title}</div>
+                        ${actorsHtml}
+                        ${themesHtml}
+                        <div class="summary">${item.smart_summary || 'No summary available'}</div>
+                        <div>
+                            <span class="ai-score">🤖 AI: ${item.ai_relevance_score}/10</span>
+                        </div>
+                    `;
+                    
+                    feedDiv.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error loading feed:', error);
+                feedDiv.innerHTML = '<div class="error">Error loading feed. Please refresh.</div>';
+            }
+        }
+        
+        // Load feed on page load
+        loadFeed();
+    </script>
+</body>
+</html>

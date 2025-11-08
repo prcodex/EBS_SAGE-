@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAGE - Premium Financial Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #15202b;
+            color: #ffffff;
+            padding: 20px;
+        }
+        .header {
+            background: #192734;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #1DA1F2;
+        }
+        .header h1 { color: #1DA1F2; font-size: 28px; margin-bottom: 8px; }
+        .stats { color: #8899a6; font-size: 14px; }
+        
+        .email-card {
+            background: #192734;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            border: 1px solid #38444d;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .email-card:hover {
+            border-color: #1DA1F2;
+            box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .sender {
+            color: #1DA1F2;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .title {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .actors {
+            margin: 10px 0;
+        }
+        
+        .actor-badge {
+            display: inline-block;
+            background: #1e3a5f;
+            color: #58a6ff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 3px 3px 3px 0;
+        }
+        
+        .themes {
+            margin: 10px 0;
+        }
+        
+        .theme-badge {
+            display: inline-block;
+            background: #2d1e3a;
+            color: #c58aff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin: 3px 3px 3px 0;
+            border: 1px solid #44337a;
+        }
+        
+        .summary-label {
+            font-weight: bold;
+            color: #1DA1F2;
+            margin-bottom: 8px;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        .summary {
+            color: #8899a6;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 15px 0;
+            white-space: pre-wrap;
+        }
+        
+        .ai-score {
+            display: inline-block;
+            background: #1e4620;
+            color: #7ee787;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-right: 8px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8899a6;
+            font-size: 18px;
+        }
+        
+        /* HTML POPUP MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: #ffffff;
+            margin: 2% auto;
+            padding: 0;
+            width: 90%;
+            max-width: 1200px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            position: relative;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-header {
+            background: #1DA1F2;
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .close-modal {
+            color: white;
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+            margin-left: 15px;
+        }
+        
+        .close-modal:hover {
+            color: #ccc;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            background: white;
+            color: #000;
+        }
+        
+        .modal-body iframe {
+            width: 100%;
+            min-height: 600px;
+            border: none;
+        }
+    </style>
+
+<style>
+    /* Email Card Improvements */
+    .email-card {
+        background: white;
+        border: 1px solid #e1e8ed;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .email-card:hover {
+        border-color: #1DA1F2;
+        box-shadow: 0 4px 12px rgba(29,161,242,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .sender {
+        color: #657786;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #14171a;
+        margin-bottom: 12px;
+        line-height: 1.4;
+    }
+    
+    .actors, .themes {
+        margin: 10px 0;
+    }
+    
+    .actor-badge, .theme-badge {
+        display: inline-block;
+        background: #e8f5fe;
+        color: #1DA1F2;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 13px;
+        margin-right: 6px;
+        margin-bottom: 6px;
+    }
+    
+    .summary-label {
+        font-size: 13px;
+        color: #657786;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-top: 12px;
+        margin-bottom: 6px;
+    }
+    
+    .summary {
+        color: #14171a;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-top: 8px;
+    }
+    
+    .ai-score {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        margin-top: 10px;
+    }
+    
+    body {
+        background: #f5f8fa;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    
+    #emails-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    #loading {
+        text-align: center;
+        padding: 40px;
+        color: #657786;
+        font-size: 16px;
+    }
+</style>
+
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 SAGE - Premium Financial Intelligence</h1>
+        <div class="stats" id="stats">Loading allowlist emails...</div>
+    </div>
+    
+    <div id="loading" class="loading">Loading your premium intelligence feed...</div>
+    <div id="emails-container"></div>
+    
+    <!-- HTML POPUP WITH EMBEDDED IMAGES -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                <h2 id="modalTitle">Email Content</h2>
+            </div>
+            <div class="modal-body">
+                <iframe id="emailFrame" sandbox="allow-same-origin"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        console.log('SAGE loading...');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM ready, fetching emails...');
+            loadEmails();
+        });
+        
+        function loadEmails() {
+            console.log('Calling /api/feed...');
+            
+            fetch('/api/feed')
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('API returned ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data received:', data.length, 'emails');
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('stats').textContent = 
+                        `Showing ${data.length} premium emails from allowlist sources`;
+                    
+                    const container = document.getElementById('emails-container');
+                    container.innerHTML = '';
+                    
+                    data.forEach((item, index) => {
+                        const div = document.createElement('div');
+                        div.className = 'email-card';
+                        
+                        // Add click handler for HTML popup (now with embedded images!)
+                        div.onclick = function() {
+                            openEmailPopup(item);
+                        };
+                        
+                        let actorsHtml = '';
+                        if (item.actors && item.actors.length > 0) {
+                            actorsHtml = '<div class="actors">👥 ' + 
+                                item.actors.map(a => `<span class="actor-badge">${a}</span>`).join('') +
+                                '</div>';
+                        }
+                        
+                        let themesHtml = '';
+                        if (item.themes && item.themes.length > 0) {
+                            themesHtml = '<div class="themes">🏷️ ' + 
+                                item.themes.map(t => `<span class="theme-badge">${t}</span>`).join('') +
+                                '</div>';
+                        }
+                        
+                        div.innerHTML = `
+                            <div class="sender">📰 @${item.display_name} <span style="color: #8899a6; font-size: 13px; margin-left: 5px;">· ${item.created_at || ""}</span></div>
+                            <div class="title">${item.title}</div>
+                            ${actorsHtml}
+                            ${themesHtml}
+                            <div class="summary-label">📝 SUMMARY</div><div class="summary">${item.smart_summary || 'No summary available'}</div>
+                            <div>
+                                <span class="ai-score">🤖 AI: ${item.ai_relevance_score}/10</span>
+                            </div>
+                        `;
+                        
+                        
+                        div.onclick = function() { openEmailPopup(item); };container.appendChild(div);
+                    });
+                    
+                    console.log('Rendered', data.length, 'emails with embedded images!');
+                })
+                .catch(error => {
+                    console.error('Error loading emails:', error);
+                    document.getElementById('loading').innerHTML = 
+                        '<span style="color: red;">Error loading emails: ' + error.message + '</span>';
+                });
+        }
+        
+        function openEmailPopup(item) {
+            console.log('Opening email with embedded images:', item.title);
+            
+            const modal = document.getElementById('emailModal');
+            const title = document.getElementById('modalTitle');
+            const frame = document.getElementById('emailFrame');
+            
+            title.textContent = item.title;
+            
+            // Show HTML with embedded images (CID converted to data URLs)
+            if (item.content_html) {
+                const iframe = frame.contentWindow.document;
+                iframe.open();
+                iframe.write(item.content_html);
+                iframe.close();
+                console.log('✅ HTML rendered with inline images');
+            } else if (item.content_text) {
+                const iframe = frame.contentWindow.document;
+                iframe.open();
+                iframe.write('<pre style="white-space: pre-wrap; font-family: Arial; padding: 20px;">' + 
+                    item.content_text + '</pre>');
+                iframe.close();
+            }
+            
+            modal.style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('emailModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+
+    <script>
+        // Beautiful Email Popup Functions
+        function openEmailPopup(item) {
+            const modal = document.getElementById('emailModal');
+            const frame = document.getElementById('emailFrame');
+            const title = document.getElementById('modalTitle');
+            
+            // Set title
+            title.textContent = item.title || 'Email Content';
+            
+            // Create beautiful HTML content
+            const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            line-height: 1.6;
+                            color: #333;
+                            padding: 20px;
+                            max-width: 100%;
+                            margin: 0;
+                        }
+                        h1, h2, h3 { 
+                            color: #2c3e50;
+                            margin-top: 20px;
+                        }
+                        img {
+                            max-width: 100%;
+                            height: auto;
+                            border-radius: 8px;
+                            margin: 10px 0;
+                        }
+                        a {
+                            color: #3498db;
+                            text-decoration: none;
+                        }
+                        a:hover {
+                            text-decoration: underline;
+                        }
+                        table {
+                            border-collapse: collapse;
+                            width: 100%;
+                            margin: 15px 0;
+                        }
+                        th, td {
+                            border: 1px solid #ddd;
+                            padding: 12px;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #f4f4f4;
+                        }
+                        blockquote {
+                            border-left: 4px solid #3498db;
+                            margin: 15px 0;
+                            padding-left: 15px;
+                            color: #555;
+                        }
+                        .email-header {
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            padding: 20px;
+                            border-radius: 8px;
+                            margin-bottom: 20px;
+                        }
+                        .email-meta {
+                            font-size: 14px;
+                            color: #666;
+                            margin-bottom: 20px;
+                            padding: 15px;
+                            background: #f8f9fa;
+                            border-radius: 8px;
+                        }
+                    </style>
+                
+<style>
+    /* Email Card Improvements */
+    .email-card {
+        background: white;
+        border: 1px solid #e1e8ed;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .email-card:hover {
+        border-color: #1DA1F2;
+        box-shadow: 0 4px 12px rgba(29,161,242,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .sender {
+        color: #657786;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #14171a;
+        margin-bottom: 12px;
+        line-height: 1.4;
+    }
+    
+    .actors, .themes {
+        margin: 10px 0;
+    }
+    
+    .actor-badge, .theme-badge {
+        display: inline-block;
+        background: #e8f5fe;
+        color: #1DA1F2;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 13px;
+        margin-right: 6px;
+        margin-bottom: 6px;
+    }
+    
+    .summary-label {
+        font-size: 13px;
+        color: #657786;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-top: 12px;
+        margin-bottom: 6px;
+    }
+    
+    .summary {
+        color: #14171a;
+        font-size: 15px;
+        line-height: 1.6;
+        margin-top: 8px;
+    }
+    
+    .ai-score {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        margin-top: 10px;
+    }
+    
+    body {
+        background: #f5f8fa;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    
+    #emails-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    #loading {
+        text-align: center;
+        padding: 40px;
+        color: #657786;
+        font-size: 16px;
+    }
+</style>
+
+</head>
+                <body>
+                    <div class="email-header">
+                        <h2>${item.title}</h2>
+                    </div>
+                    <div class="email-meta">
+                        <div>📰 <strong>From:</strong> ${item.display_name}</div>
+                        <div>📅 <strong>Date:</strong> ${item.created_at}</div>
+                    </div>
+                    <div class="email-content">
+                        ${item.content_html || item.smart_summary || '<p>No content available</p>'}
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            // Write content to iframe
+            frame.srcdoc = htmlContent;
+            
+            // Show modal with animation
+            modal.style.display = 'block';
+            setTimeout(() => {
+                modal.style.opacity = '1';
+            }, 10);
+        }
+        
+        function closeEmailPopup() {
+            const modal = document.getElementById('emailModal');
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+        
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('emailModal');
+            if (event.target == modal) {
+                closeEmailPopup();
+            }
+        }
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeEmailPopup();
+            }
+        });
+    </script>
+</body>
+</html>

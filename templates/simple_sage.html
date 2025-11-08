@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SAGE Intelligence Feed</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .email-item { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .title { font-size: 18px; font-weight: bold; color: #4fbdba; margin-bottom: 10px; }
+        .sender { color: #7ec8e3; font-size: 14px; margin-bottom: 5px; }
+        .summary { color: #ddd; line-height: 1.6; margin: 10px 0; white-space: pre-wrap; }
+        .actors, .themes { margin: 5px 0; }
+        .tag { display: inline-block; background: #0f3460; padding: 3px 8px; border-radius: 4px; margin-right: 5px; font-size: 12px; }
+        .score { color: #4fbdba; font-weight: bold; margin-top: 10px; }
+        h1 { color: #4fbdba; text-align: center; }
+        .loading { text-align: center; color: #7ec8e3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 SAGE Intelligence Feed</h1>
+        <div id="loading" class="loading">Loading your enriched emails...</div>
+        <div id="feed"></div>
+    </div>
+    
+    <script>
+    fetch('/api/feed')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loading').style.display = 'none';
+            const feed = document.getElementById('feed');
+            
+            if (data.items && data.items.length > 0) {
+                feed.innerHTML = '<h2>Total: ' + data.total + ' emails</h2>';
+                
+                data.items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'email-item';
+                    
+                    // Build HTML
+                    let html = '<div class="sender">@' + item.display_name + ' - ' + (item.created_at || '') + '</div>';
+                    html += '<div class="title">' + item.title + '</div>';
+                    
+                    // Actors
+                    if (item.actors && item.actors.length > 0) {
+                        html += '<div class="actors">👥 Actors: ';
+                        item.actors.forEach(actor => {
+                            html += '<span class="tag">' + actor + '</span>';
+                        });
+                        html += '</div>';
+                    }
+                    
+                    // Themes
+                    if (item.themes && item.themes.length > 0) {
+                        html += '<div class="themes">🏷️ Themes: ';
+                        item.themes.forEach(theme => {
+                            html += '<span class="tag">' + theme + '</span>';
+                        });
+                        html += '</div>';
+                    }
+                    
+                    // Summary
+                    if (item.smart_summary && item.smart_summary != 'N/A') {
+                        const summaryLength = item.smart_summary.length;
+                        html += '<div class="summary">📝 Summary (' + summaryLength.toLocaleString() + ' chars):<br>' + item.smart_summary + '</div>';
+                    }
+                    
+                    // Score
+                    html += '<div class="score">🤖 AI Score: ' + (item.ai_relevance_score || 7) + '/10</div>';
+                    
+                    div.innerHTML = html;
+                    feed.appendChild(div);
+                });
+            } else {
+                feed.innerHTML = '<p>No emails found</p>';
+            }
+        })
+        .catch(error => {
+            document.getElementById('loading').innerHTML = 'Error loading emails: ' + error;
+        });
+    </script>
+</body>
+</html>

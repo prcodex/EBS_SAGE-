@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAGE 3.1 - Safe Links Edition</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* All previous styles remain the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8f9fa;
+            color: #202124;
+            font-size: 14px;
+            line-height: 20px;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            background: white;
+        }
+        
+        /* Gmail-style Sidebar */
+        .sidebar {
+            width: 256px;
+            background: #ffffff;
+            border-right: 1px solid #dadce0;
+            padding: 8px 0;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .logo {
+            padding: 12px 20px;
+            font-size: 22px;
+            font-weight: 400;
+            color: #5f6368;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0 12px 0 26px;
+            height: 32px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+            color: #202124;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.25px;
+        }
+        
+        .nav-item:hover {
+            background-color: #f1f3f4;
+        }
+        
+        .nav-item.active {
+            background-color: #fce8e6;
+            color: #d33b27;
+        }
+        
+        .nav-item.active .material-icons {
+            color: #d33b27;
+        }
+        
+        .nav-item .material-icons {
+            font-size: 20px;
+            margin-right: 18px;
+            color: #5f6368;
+        }
+        
+        .feed-count {
+            margin-left: auto;
+            font-size: 14px;
+            color: #5f6368;
+            font-weight: 400;
+        }
+        
+        .nav-item.active .feed-count {
+            color: #d33b27;
+            font-weight: 500;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #dadce0;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 720px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #5f6368;
+            font-size: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            height: 48px;
+            padding: 12px 16px 12px 48px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            background: white;
+            border-color: #1a73e8;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+        }
+        
+        /* Feed Container */
+        .feed-container {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            position: relative;
+        }
+        
+        /* Gmail-style Feed Items - RESTORED */
+        .feed-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-bottom: 1px solid #f1f3f4;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            position: relative;
+            min-height: 64px;
+        }
+        
+        .feed-item:hover {
+            background-color: #f8f9fa;
+            box-shadow: inset 1px 0 0 #dadce0;
+        }
+        
+        .feed-item.unread {
+            background-color: #fff;
+            font-weight: 500;
+        }
+        
+        .feed-item.read {
+            background-color: #f8f9fa;
+            font-weight: 400;
+        }
+        
+        .feed-checkbox {
+            margin-right: 12px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .feed-star {
+            margin-right: 12px;
+            color: #dadce0;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .feed-star.starred {
+            color: #fbbc04;
+        }
+        
+        .feed-author {
+            min-width: 120px;
+            max-width: 120px;
+            margin-right: 16px;
+            color: #202124;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .feed-content {
+            flex: 1;
+            margin-right: 16px;
+            min-width: 0;
+        }
+        
+        .feed-subject {
+            display: block;
+            color: #202124;
+            font-weight: 500;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .feed-snippet {
+            display: block;
+            color: #5f6368;
+            font-size: 13px;
+            font-weight: 400;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .feed-date {
+            color: #5f6368;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        
+        /* Tweet indicator */
+        .feed-item.tweet {
+            background: linear-gradient(to right, #1da1f208 0%, transparent 100px);
+        }
+        
+        .feed-item.tweet .feed-author {
+            color: #1da1f2;
+        }
+        
+        /* Enhanced Loading States */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #5f6368;
+            gap: 16px;
+        }
+        
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #f1f3f4;
+            border-top: 3px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Link Extraction Section - NEW */
+        .links-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            border: 1px solid #dadce0;
+        }
+        
+        .links-section h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .links-section h3 .material-icons {
+            font-size: 18px;
+            color: #1a73e8;
+        }
+        
+        .link-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 4px 0;
+            background: white;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: #1a73e8;
+            font-size: 13px;
+            position: relative;
+        }
+        
+        .link-item:hover {
+            background: #e8f0fe;
+            border-color: #1a73e8;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .link-item .material-icons {
+            font-size: 16px;
+            margin-right: 8px;
+            color: #5f6368;
+        }
+        
+        .link-domain {
+            margin-left: auto;
+            color: #5f6368;
+            font-size: 11px;
+            padding: 2px 6px;
+            background: #f1f3f4;
+            border-radius: 3px;
+        }
+        
+        .link-warning {
+            background: #fef7e0;
+            border-color: #fbbc04;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #5f6368;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .link-warning .material-icons {
+            color: #fbbc04;
+            font-size: 16px;
+        }
+        
+        /* Email Content Wrapper with Link Interception */
+        .email-content-wrapper {
+            position: relative;
+        }
+        
+        .email-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .email-overlay.interactive {
+            pointer-events: auto;
+        }
+        
+        /* Safe Link Modal */
+        .safe-link-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            padding: 24px;
+            max-width: 480px;
+            width: 90%;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .safe-link-modal.visible {
+            display: block;
+        }
+        
+        .safe-link-modal h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #202124;
+        }
+        
+        .safe-link-modal .link-preview {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 12px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            color: #1a73e8;
+        }
+        
+        .safe-link-modal .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .safe-link-modal button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .safe-link-modal .btn-cancel {
+            background: #f1f3f4;
+            color: #5f6368;
+        }
+        
+        .safe-link-modal .btn-cancel:hover {
+            background: #dadce0;
+        }
+        
+        .safe-link-modal .btn-open {
+            background: #1a73e8;
+            color: white;
+        }
+        
+        .safe-link-modal .btn-open:hover {
+            background: #1557b0;
+        }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+            display: none;
+        }
+        
+        .modal-overlay.visible {
+            display: block;
+        }
+        
+        /* All other styles remain the same */
+        .feed-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-bottom: 1px solid #f1f3f4;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            position: relative;
+            min-height: 64px;
+        }
+        
+        .feed-item:hover {
+            background-color: #f8f9fa;
+            box-shadow: inset 1px 0 0 #dadce0;
+        }
+        
+        .detail-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100vh;
+            background: white;
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .detail-panel.open {
+            right: 0;
+        }
+        
+        .detail-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dadce0;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            color: #1a73e8;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .detail-content {
+            flex: 1;
+            padding: 20px;
+            background: #fff;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <span class="material-icons" style="color: #ea4335;">mail</span>
+                <span>SAGE 3.1</span>
+            </div>
+            
+            <div class="nav-item active" data-filter="all">
+                <span class="material-icons">inbox</span>
+                <span>Unified Feed</span>
+                <span class="feed-count" id="all-count">0</span>
+            </div>
+            <div class="nav-item" data-filter="email">
+                <span class="material-icons">email</span>
+                <span>Emails</span>
+                <span class="feed-count" id="email-count">0</span>
+            </div>
+            <div class="nav-item" data-filter="twitter">
+                <span class="material-icons">tag</span>
+                <span>Twitter</span>
+                <span class="feed-count" id="twitter-count">0</span>
+            </div>
+            <div class="nav-item" data-filter="goldman_sachs">
+                <span class="material-icons">business</span>
+                <span>Goldman Sachs</span>
+                <span class="feed-count" id="goldman-count">0</span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <div class="search-box">
+                    <span class="material-icons search-icon">search</span>
+                    <input type="text" class="search-input" placeholder="Search in mail" id="search-input">
+                </div>
+            </div>
+            
+            <div class="feed-container" id="feed-container">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading your feed...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detail Panel -->
+        <div class="detail-panel" id="detailPanel">
+            <div class="detail-header">
+                <button class="back-btn" onclick="closeDetail()">
+                    <span class="material-icons">arrow_back</span>
+                    <span>Back to Inbox</span>
+                </button>
+            </div>
+            <div class="detail-content" id="detailContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Safe Link Modal -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="safe-link-modal" id="safeLinkModal">
+        <h3>
+            <span class="material-icons">open_in_new</span>
+            Open External Link
+        </h3>
+        <p>You are about to open an external link in a new tab:</p>
+        <div class="link-preview" id="linkPreview"></div>
+        <div class="link-warning">
+            <span class="material-icons">info</span>
+            <span>This link will open in a new browser tab. Always verify links before clicking.</span>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeLinkModal()">Cancel</button>
+            <button class="btn-open" id="openLinkBtn">Open in New Tab</button>
+        </div>
+    </div>
+    
+    <script>
+        // Enhanced SAGE 3.1 with Safe Link Handling
+        class SageSafeLinks {
+            constructor() {
+                this.currentFilter = 'all';
+                this.currentOffset = 0;
+                this.itemsPerPage = 50;
+                this.isLoading = false;
+                this.hasMore = true;
+                this.allItems = [];
+                this.extractedLinks = [];
+                this.trustedDomains = [
+                    'bloomberg.com',
+                    'reuters.com',
+                    'wsj.com',
+                    'ft.com',
+                    'economist.com',
+                    'marketwatch.com',
+                    'yahoo.com',
+                    'google.com',
+                    'linkedin.com',
+                    'twitter.com'
+                ];
+                
+                this.initialize();
+            }
+            
+            initialize() {
+                this.setupElements();
+                this.setupEventListeners();
+                this.loadStats();
+                this.loadFeed(true);
+            }
+            
+            setupElements() {
+                this.feedContainer = document.getElementById('feed-container');
+                this.searchInput = document.getElementById('search-input');
+                this.detailPanel = document.getElementById('detailPanel');
+                this.detailContent = document.getElementById('detailContent');
+                this.modalOverlay = document.getElementById('modalOverlay');
+                this.safeLinkModal = document.getElementById('safeLinkModal');
+            }
+            
+            setupEventListeners() {
+                // Navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', () => this.handleNavigation(item));
+                });
+                
+                // Infinite scroll
+                this.feedContainer.addEventListener('scroll', () => {
+                    const { scrollTop, scrollHeight, clientHeight } = this.feedContainer;
+                    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+                    
+                    if (scrollPercentage >= 0.8 && this.hasMore && !this.isLoading) {
+                        this.loadFeed(false);
+                    }
+                });
+                
+                // Modal overlay click
+                this.modalOverlay.addEventListener('click', () => this.closeLinkModal());
+            }
+            
+            async loadStats() {
+                try {
+                    const response = await fetch('/api/feed?type=all&limit=0');
+                    const data = await response.json();
+                    
+                    if (data.stats) {
+                        document.getElementById('all-count').textContent = data.stats.total_count || 0;
+                        document.getElementById('email-count').textContent = data.stats.email_count || 0;
+                        document.getElementById('twitter-count').textContent = data.stats.twitter_count || 0;
+                        document.getElementById('goldman-count').textContent = data.stats.goldman_count || 0;
+                    }
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            }
+            
+            async loadFeed(reset = false) {
+                if (this.isLoading || (!this.hasMore && !reset)) return;
+                
+                this.isLoading = true;
+                
+                if (reset) {
+                    this.currentOffset = 0;
+                    this.hasMore = true;
+                    this.allItems = [];
+                    this.feedContainer.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div><div class="loading-text">Loading...</div></div>';
+                }
+                
+                try {
+                    const response = await fetch(`/api/feed?type=${this.currentFilter}&limit=${this.itemsPerPage}&offset=${this.currentOffset}`);
+                    const data = await response.json();
+                    
+                    if (reset) {
+                        this.feedContainer.innerHTML = '';
+                    }
+                    
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            const itemEl = this.createFeedItem(item);
+                            this.feedContainer.appendChild(itemEl);
+                        });
+                        
+                        this.allItems.push(...data.items);
+                        this.currentOffset += data.items.length;
+                        this.hasMore = data.has_more !== false;
+                    }
+                } catch (error) {
+                    console.error('Error loading feed:', error);
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+            
+            createFeedItem(item) {
+                const div = document.createElement('div');
+                const isUnread = !item.is_read;
+                const isTweet = item.source_type === 'twitter' || item.type === 'twitter';
+                
+                div.className = `feed-item ${isUnread ? 'unread' : 'read'} ${isTweet ? 'tweet' : ''}`;
+                div.dataset.itemId = item.id;
+                
+                const date = this.formatDate(new Date(item.created_at));
+                const author = item.author || 'Unknown';
+                const subject = item.title || item.subject || 'No subject';
+                const snippet = (item.content_text || item.content || '').substring(0, 100);
+                
+                div.onclick = () => {
+                    if (item.source_type === 'email' || item.type === 'email') {
+                        this.openEmailDetail(item.id);
+                    }
+                };
+                
+                div.innerHTML = `
+                    <input type="checkbox" class="feed-checkbox">
+                    <span class="material-icons feed-star ${item.starred ? 'starred' : ''}" 
+                          onclick="event.stopPropagation(); toggleStar('${item.id}')">
+                        ${item.starred ? 'star' : 'star_border'}
+                    </span>
+                    <span class="feed-author">${this.escapeHtml(author)}</span>
+                    <div class="feed-content">
+                        <span class="feed-subject">${this.escapeHtml(subject)}</span>
+                        <span class="feed-snippet">${this.escapeHtml(snippet)}</span>
+                    </div>
+                    <span class="feed-date">${date}</span>
+                `;
+                
+                return div;
+            }
+            
+            async openEmailDetail(emailId) {
+                this.detailPanel.classList.add('open');
+                this.detailContent.innerHTML = '<div class="loading-container"><div class="loading-spinner"></div><div class="loading-text">Loading email...</div></div>';
+                
+                try {
+                    const response = await fetch(`/api/email/${emailId}`);
+                    const email = await response.json();
+                    
+                    if (email.error) {
+                        throw new Error(email.error);
+                    }
+                    
+                    // Extract links from the email
+                    this.extractedLinks = this.extractLinksFromEmail(email);
+                    
+                    // Render email with safe link handling
+                    this.detailContent.innerHTML = `
+                        <div class="email-header">
+                            <h1>${this.escapeHtml(email.title || email.subject || 'No subject')}</h1>
+                            <div class="email-meta">
+                                <strong>${this.escapeHtml(email.author || 'Unknown')}</strong>
+                                <span> - ${this.formatFullDate(new Date(email.created_at))}</span>
+                            </div>
+                        </div>
+                        
+                        ${this.extractedLinks.length > 0 ? this.renderLinksSection() : ''}
+                        
+                        <div class="email-content-wrapper">
+                            ${this.renderEmailContentSafe(email)}
+                        </div>
+                    `;
+                    
+                    // Setup iframe link interception
+                    this.setupIframeLinkInterception();
+                    
+                } catch (error) {
+                    this.detailContent.innerHTML = `<div class="loading-container">Error: ${error.message}</div>`;
+                }
+            }
+            
+            extractLinksFromEmail(email) {
+                const links = new Set();
+                
+                // Extract from links array
+                if (email.links && Array.isArray(email.links)) {
+                    email.links.forEach(link => {
+                        if (this.isValidUrl(link)) {
+                            links.add(link);
+                        }
+                    });
+                }
+                
+                // Extract from HTML content
+                if (email.content_html) {
+                    const urlRegex = /https?:\/\/[^\s<>"{}|\\^\[\]`]+/gi;
+                    const matches = email.content_html.match(urlRegex) || [];
+                    matches.forEach(url => {
+                        if (this.isValidUrl(url) && !url.includes('cid:')) {
+                            links.add(url);
+                        }
+                    });
+                }
+                
+                return Array.from(links);
+            }
+            
+            isValidUrl(url) {
+                try {
+                    const urlObj = new URL(url);
+                    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+                } catch {
+                    return false;
+                }
+            }
+            
+            renderLinksSection() {
+                const validLinks = this.extractedLinks.filter(link => {
+                    try {
+                        const url = new URL(link);
+                        // Filter out Goldman Sachs internal links
+                        return !url.hostname.includes('.gs.com');
+                    } catch {
+                        return false;
+                    }
+                });
+                
+                if (validLinks.length === 0) return '';
+                
+                return `
+                    <div class="links-section">
+                        <h3>
+                            <span class="material-icons">link</span>
+                            External Links (${validLinks.length})
+                        </h3>
+                        <div class="links-list">
+                            ${validLinks.map(link => this.renderLinkItem(link)).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            renderLinkItem(url) {
+                let domain = '';
+                let isTrusted = false;
+                
+                try {
+                    const urlObj = new URL(url);
+                    domain = urlObj.hostname.replace('www.', '');
+                    isTrusted = this.trustedDomains.some(trusted => domain.includes(trusted));
+                } catch {
+                    domain = 'unknown';
+                }
+                
+                const truncatedUrl = url.length > 60 ? url.substring(0, 60) + '...' : url;
+                
+                return `
+                    <a href="${url}" target="_blank" rel="noopener noreferrer" 
+                       class="link-item" 
+                       onclick="event.stopPropagation();">
+                        <span class="material-icons">${isTrusted ? 'verified' : 'open_in_new'}</span>
+                        <span class="link-text">${this.escapeHtml(truncatedUrl)}</span>
+                        <span class="link-domain">${domain}</span>
+                    </a>
+                `;
+            }
+            
+            handleLinkClick(encodedUrl, event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const url = decodeURIComponent(encodedUrl);
+                // Open directly without modal
+                window.open(url, '_blank', 'noopener,noreferrer');
+            }
+            
+            openLinkDirectly(url) {
+                // Open link in new tab with security features
+                const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                if (newWindow) {
+                    newWindow.opener = null;
+                }
+                console.log('External link opened:', url);
+            }
+            
+            renderEmailContentSafe(email) {
+                const htmlContent = email.content_html;
+                const textContent = email.content_text;
+                
+                if (htmlContent) {
+                    // Process HTML to make links safe
+                    let processedHtml = htmlContent;
+                    
+                    // Remove onclick handlers and javascript: links
+                    processedHtml = processedHtml.replace(/onclick\s*=\s*["'][^"']*["']/gi, '');
+                    processedHtml = processedHtml.replace(/javascript:/gi, '#');
+                    
+                    // Add target="_blank" and rel="noopener noreferrer" to all links
+                    processedHtml = processedHtml.replace(
+                        /<a\s+([^>]*href=["'][^"']+["'][^>]*)>/gi,
+                        '<a $1 target="_blank" rel="noopener noreferrer">'
+                    );
+                    
+                    return `
+                        <iframe 
+                            id="emailFrame"
+                            class="email-iframe"
+                            srcdoc="${processedHtml.replace(/"/g, '&quot;')}"
+                            sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                            loading="lazy"
+                            style="width: 100%; border: none; min-height: 600px;"
+                            onload="sageApp.adjustIframeHeight(this)"
+                        ></iframe>
+                    `;
+                } else if (textContent) {
+                    // Convert URLs in plain text to clickable links
+                    const linkedText = this.linkifyText(textContent);
+                    return `
+                        <div style="padding: 20px; white-space: pre-wrap; word-wrap: break-word;">
+                            ${linkedText}
+                        </div>
+                    `;
+                } else {
+                    return '<div style="padding: 20px; color: #5f6368;">No content available</div>';
+                }
+            }
+            
+            setupIframeLinkInterception() {
+                const iframe = document.getElementById('emailFrame');
+                if (!iframe) return;
+                
+                iframe.onload = () => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        if (iframeDoc) {
+                            // Intercept all link clicks in the iframe
+                            iframeDoc.addEventListener('click', (e) => {
+                                if (e.target.tagName === 'A') {
+                                    e.preventDefault();
+                                    const href = e.target.getAttribute('href');
+                                    if (href && !href.startsWith('#') && !href.startsWith('mailto:')) {
+                                        this.handleEmbeddedLink(href);
+                                    }
+                                }
+                            });
+                            
+                            // Add styles to indicate clickable links
+                            const style = iframeDoc.createElement('style');
+                            style.textContent = `
+                                a {
+                                    color: #1a73e8 !important;
+                                    text-decoration: underline !important;
+                                    cursor: pointer !important;
+                                }
+                                a:hover {
+                                    color: #1557b0 !important;
+                                }
+                            `;
+                            iframeDoc.head.appendChild(style);
+                        }
+                    } catch (e) {
+                        // Cross-origin iframe, can't access content
+                        console.log('Cannot access iframe content due to cross-origin restrictions');
+                    }
+                };
+            }
+            
+            handleEmbeddedLink(url) {
+                if (url && this.isValidUrl(url)) {
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                }
+            }
+            
+            adjustIframeHeight(iframe) {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    if (iframeDoc && iframeDoc.body) {
+                        const height = iframeDoc.body.scrollHeight;
+                        iframe.style.height = Math.max(height + 40, 600) + 'px';
+                    }
+                } catch (e) {
+                    iframe.style.height = '800px';
+                }
+            }
+            
+            linkifyText(text) {
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                return text.replace(urlRegex, (url) => {
+                    return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #1a73e8; text-decoration: underline;">${url}</a>`;
+                });
+            }
+            
+            handleNavigation(item) {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                this.currentFilter = item.dataset.filter;
+                this.closeDetail();
+                this.loadFeed(true);
+            }
+            
+            closeDetail() {
+                this.detailPanel.classList.remove('open');
+            }
+            
+            formatDate(date) {
+                const now = new Date();
+                const diff = now - date;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                
+                if (days === 0) {
+                    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                } else if (days === 1) {
+                    return 'Yesterday';
+                } else if (days < 7) {
+                    return date.toLocaleDateString('en-US', { weekday: 'short' });
+                } else {
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+            }
+            
+            formatFullDate(date) {
+                return date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text || '';
+                return div.innerHTML;
+            }
+        }
+        
+        // Global functions
+        function closeDetail() {
+            sageApp.closeDetail();
+        }
+        
+        function closeLinkModal() {
+            sageApp.closeLinkModal();
+        }
+        
+        // Initialize SAGE 3.1
+        let sageApp;
+        document.addEventListener('DOMContentLoaded', () => {
+            sageApp = new SageSafeLinks();
+        });
+    </script>
+</body>
+</html>
