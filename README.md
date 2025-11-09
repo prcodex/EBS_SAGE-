@@ -178,3 +178,10 @@ Commands:
 ---
 *Last Updated: November 8, 2025*
 *Version: 1.0.0*
+
+## Backups & Documentation (Updated 2025-11-09)
+
+- Latest repository snapshot: `backups/EBS_SAGE_backup_20251109_133106Z.tar.gz`
+- Detailed infrastructure map: `docs/STRUCTURE_OVERVIEW.md`
+- Extraction and enrichment technical specs: `TECHNICAL_SPECS_EXTRACTION.md`
+

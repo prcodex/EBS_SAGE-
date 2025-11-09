@@ -41,3 +41,4 @@ processed_ids_ebs.json
 # Archives
 *.tar.gz
 *.zip
+!backups/*.tar.gz
